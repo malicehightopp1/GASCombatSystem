@@ -20,6 +20,28 @@
 ---
 
 ## ⚔️ Features
+GAS combat system I think would work the best along with learning how to use GAS 
+more. ​
+
+AI enemy that follow the same attack patterns as the player, making the AI feel fluid 
+and challenging. ​
+
+3rd person camera – locks when target lock, when the player is still the ability to 
+orbit the player ​
+
+Weapon priority stats – Weapons decide certain player stats. Heavy weapon = slower 
+walk speed​
+
+Attack variations – light attack, Heavy Attack, Special 1, 2, and 3, blocking​
+
+Counter attacking – parrying and stance breaking​
+
+Target lock – locking onto a enemy changing how the player movement work 
+temporarily.​
+
+Actions the player takes will all be stamina based ​
+
+Dodge – Dodging attacks ​
 
 ## ⚙️ Core Systems
 
