@@ -8,10 +8,7 @@ public class CombatSystem : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput",$"GameplayAbilities","GameplayTags", "GameplayTasks", "AIModule","NavigationSystem", "UMG" });
-
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
-
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities","GameplayTags", "GameplayTasks", "AIModule","NavigationSystem", "UMG" });
 		
 		//Allows me to write #include Combat/WeaponData from anywhere
 		PublicIncludePaths.Add(ModuleDirectory);

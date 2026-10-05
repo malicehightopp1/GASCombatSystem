@@ -4,7 +4,7 @@
 
 #include "NativeGameplayTags.h"
 
-namespace Combat
+namespace CombatTags
 {
 	//Base attacks - main focus
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Attack);
@@ -48,15 +48,4 @@ namespace Combat
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Weapon_MoveSpeed);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Data_Weapon_Weight);
 
-
-
-
-
-
-
-
-
-
-
-	
 }

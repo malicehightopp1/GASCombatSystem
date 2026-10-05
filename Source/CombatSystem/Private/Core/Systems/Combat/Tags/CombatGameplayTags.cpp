@@ -40,7 +40,4 @@ namespace CombatTags
 	UE_DEFINE_GAMEPLAY_TAG(Data_Weapon_AttackSpeed, "Data.Weapon.AttackSpeed");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Weapon_MoveSpeed, "Data.Weapon.MoveSpeed");
 	UE_DEFINE_GAMEPLAY_TAG(Data_Weapon_Weight, "Data.Weapon.Weight");
-
-
-
 }
