@@ -35,7 +35,6 @@ bool ACombatCharacter::IsDead() const
 
 void ACombatCharacter::BeginPlay()
 {
-
 	//playing these first before start
 	WeaponMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, WeaponSocketName);
 	InitAbilitySystem();

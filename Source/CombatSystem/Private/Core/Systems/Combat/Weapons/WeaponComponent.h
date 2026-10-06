@@ -30,7 +30,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Weapon")
 	float GetMoveSpeedForWeight(float InWeight) const;
 
-	// ---- Hit detection (driven by ANS_WeaponTrace in Phase 3) ----
+	//============================================//
+	//                Hit detection               //
+	//============================================//
+	
 	void BeginAttackTrace(float Radius);
 	void UpdateAttackTrace();
 	void EndAttackTrace();
@@ -42,7 +45,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TSubclassOf<UGameplayEffect> WeaponStatsEffect;
 
-	// ---- Weight -> movement speed tuning ----
+	//============================================//
+	//                movement                    //
+	//============================================//
+	
 	UPROPERTY(EditAnywhere, Category = "Weapon|Tuning") float BaseMoveSpeed = 600.f;
 	UPROPERTY(EditAnywhere, Category = "Weapon|Tuning") float SpeedLostPerWeight = 8.f;
 	UPROPERTY(EditAnywhere, Category = "Weapon|Tuning") float MinMoveSpeed = 250.f;

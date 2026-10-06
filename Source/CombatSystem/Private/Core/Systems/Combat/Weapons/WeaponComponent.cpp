@@ -30,7 +30,6 @@ void UWeaponComponent::EquipWeapon(UUWeaponData* NewWeapon)
 	UAbilitySystemComponent* ASC = GetOwnerASC();
 	if (!NewWeapon || !ASC) return;
 
-	// 1) Remove the old weapon's stats
 	if (WeaponStatsHandle.IsValid())
 	{
 		ASC->RemoveActiveGameplayEffect(WeaponStatsHandle);
@@ -39,13 +38,18 @@ void UWeaponComponent::EquipWeapon(UUWeaponData* NewWeapon)
 
 	CurrentWeapon = NewWeapon;
 
-	// 2) Swap the visible mesh
 	if (ACombatCharacter* Character = Cast<ACombatCharacter>(GetOwner()))
 	{
-		Character->GetWeaponMesh()->SetStaticMesh(NewWeapon->WeaponMesh);
+		if (UStaticMeshComponent* Mesh = Character->GetWeaponMesh())
+		{
+			Mesh->SetStaticMesh(NewWeapon->WeaponMesh);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("%s has no WeaponMesh component - recreate its Blueprint"), *GetNameSafe(Character));
+		}
 	}
 
-	// 3) Push the new weapon's stats into the attribute set
 	if (WeaponStatsEffect)
 	{
 		FGameplayEffectContextHandle Context = ASC->MakeEffectContext();
