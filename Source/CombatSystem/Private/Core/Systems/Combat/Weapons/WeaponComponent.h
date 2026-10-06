@@ -41,7 +41,6 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Weapon")
 	FOnWeaponChanged OnWeaponChanged;
 
-	/** Set to GE_WeaponStats (Infinite, SetByCaller modifiers). */
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 	TSubclassOf<UGameplayEffect> WeaponStatsEffect;
 

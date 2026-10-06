@@ -133,7 +133,6 @@ void UWeaponComponent::UpdateAttackTrace()
 		AllHits.Append(Hits);
 	};
 
-	// Along the blade now, plus tip & middle from last frame to this frame (fast swings don't skip)
 	Sweep(BladeStart, BladeEnd);
 	Sweep(PrevBladeEnd, BladeEnd);
 	Sweep((PrevBladeStart + PrevBladeEnd) * 0.5f, (BladeStart + BladeEnd) * 0.5f);

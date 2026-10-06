@@ -70,7 +70,6 @@ void APlayerCombatCharacter::Move(const FInputActionValue& Value)
 	const FVector2D Input = Value.Get<FVector2D>();
 	if (!Controller) return;
 
-	// Move relative to where the CAMERA faces (yaw only, ignore looking up/down)
 	const FRotator YawRotation(0.f, Controller->GetControlRotation().Yaw, 0.f);
 	const FVector Forward = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector Right   = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
