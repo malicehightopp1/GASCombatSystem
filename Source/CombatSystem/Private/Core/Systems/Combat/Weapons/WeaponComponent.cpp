@@ -58,10 +58,10 @@ void UWeaponComponent::EquipWeapon(UUWeaponData* NewWeapon)
 		FGameplayEffectSpecHandle Spec = ASC->MakeOutgoingSpec(WeaponStatsEffect, 1.f, Context);
 		if (Spec.IsValid())
 		{
-			Spec.Data->SetSetByCallerMagnitude(CombatTags::Data_Weapon_Damage,      NewWeapon->Damage);
+			Spec.Data->SetSetByCallerMagnitude(CombatTags::Data_Weapon_Damage, NewWeapon->Damage);
 			Spec.Data->SetSetByCallerMagnitude(CombatTags::Data_Weapon_AttackSpeed, NewWeapon->AttackSpeed);
-			Spec.Data->SetSetByCallerMagnitude(CombatTags::Data_Weapon_Weight,      NewWeapon->Weight);
-			Spec.Data->SetSetByCallerMagnitude(CombatTags::Data_Weapon_MoveSpeed,   GetMoveSpeedForWeight(NewWeapon->Weight));
+			Spec.Data->SetSetByCallerMagnitude(CombatTags::Data_Weapon_Weight, NewWeapon->Weight);
+			Spec.Data->SetSetByCallerMagnitude(CombatTags::Data_Weapon_MoveSpeed, GetMoveSpeedForWeight(NewWeapon->Weight));
 			WeaponStatsHandle = ASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
 		}
 	}
