@@ -79,6 +79,7 @@ void APlayerCombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		Input->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCombatCharacter::Move);
 		Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCombatCharacter::Look);
 		Input->BindAction(LightAttackAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnLightAttack);
+		Input->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnHeavyAttack);
 	}
 }
 
@@ -102,7 +103,17 @@ void APlayerCombatCharacter::Look(const FInputActionValue& Value)
 	AddControllerPitchInput(Input.Y);
 }
 
+void APlayerCombatCharacter::ActivateAbilityByTag(const FGameplayTag& AbilityTag)
+{
+	AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(AbilityTag));
+}
+
 void APlayerCombatCharacter::OnLightAttack()
 {
-	AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(CombatTags::Ability_Attack_Light.GetTag()));
+	ActivateAbilityByTag(CombatTags::Ability_Attack_Light.GetTag());
+}
+
+void APlayerCombatCharacter::OnHeavyAttack()
+{
+	ActivateAbilityByTag(CombatTags::Ability_Attack_Heavy.GetTag());
 }

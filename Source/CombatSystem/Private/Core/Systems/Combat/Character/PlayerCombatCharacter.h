@@ -6,6 +6,7 @@
 #include "Core/Systems/Combat/Character/CombatCharacter.h"
 #include "PlayerCombatCharacter.generated.h"
 
+struct FGameplayTag;
 class UPlayerHUDWidget;
 class UInputAction;
 class UInputMappingContext;
@@ -55,8 +56,13 @@ protected:
 	//============================================//
 	//                AttackingInput              //
 	//============================================//
+	void ActivateAbilityByTag(const FGameplayTag& AbilityTag);
+	
+	void OnLightAttack();
+	void OnHeavyAttack();
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> HeavyAttackAction;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> LightAttackAction;
 	
-	void OnLightAttack();
 };

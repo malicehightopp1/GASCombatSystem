@@ -3,7 +3,11 @@
 
 #include "Core/Systems/Combat/GameplayAbilities/MeleeAttack.h"
 
+#include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Core/Systems/Combat/Character/CombatCharacter.h"
+#include "Core/Systems/Combat/Sets/CombatAttributeSet.h"
+#include "Core/Systems/Combat/Weapons/WeaponComponent.h"
 
 UMeleeAttack::UMeleeAttack()
 {
@@ -12,23 +16,27 @@ UMeleeAttack::UMeleeAttack()
 
 void UMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	const ACombatCharacter* Character = Cast<ACombatCharacter>(ActorInfo->AvatarActor.Get());
+	UWeaponComponent* WeaponComp = Character ? Character->GetWeaponComponent() : nullptr;
+	UUWeaponData* Weapon = WeaponComp ? WeaponComp->GetCurrentWeapon() : nullptr;
+
+	if (!Weapon || !Weapon->GetAttack(AttackSlot, 0, CurrentAttack))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("%s: equipped weapon has no attack for this slot"), *GetName());
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		return;
+	}
 	
-	if (!AttackMontage || !CommitAbility(Handle, ActorInfo, ActivationInfo))
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-
-	UAbilityTask_PlayMontageAndWait* MontageTask =
-		UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, AttackMontage, 1.f);
-
-	MontageTask->OnCompleted.AddDynamic(this, &UMeleeAttack::OnMontageFinished);
-	MontageTask->OnBlendOut.AddDynamic(this, &UMeleeAttack::OnMontageFinished);
-	MontageTask->OnInterrupted.AddDynamic(this, &UMeleeAttack::OnMontageCancelled);
-	MontageTask->OnCancelled.AddDynamic(this, &UMeleeAttack::OnMontageCancelled);
-
-	MontageTask->ReadyForActivation(); // tasks don't start until you call this
+	
+	const float AttackSpeed = GetAbilitySystemComponentFromActorInfo() ->GetNumericAttribute(UCombatAttributeSet::GetAttackSpeedAttribute());
+	const float PlayRate = AttackSpeed > 0.f ? AttackSpeed : 1.f;
+	
+	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, CurrentAttack.Montage, PlayRate);
 }
 
 void UMeleeAttack::OnMontageFinished()

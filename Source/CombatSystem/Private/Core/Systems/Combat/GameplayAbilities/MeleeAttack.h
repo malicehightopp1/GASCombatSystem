@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "Core/Systems/Combat/Weapons/UWeaponData.h"
 #include "MeleeAttack.generated.h"
 
 
@@ -18,7 +19,11 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	
 protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Attack") TObjectPtr<UAnimMontage> AttackMontage;
+	UPROPERTY(EditDefaultsOnly, Category = "Attack") EAttackSlot AttackSlot = EAttackSlot::Light;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Attack") FAttackData CurrentAttack;
+	
+	
 	UFUNCTION() void OnMontageFinished();
 	UFUNCTION() void OnMontageCancelled();
 };
