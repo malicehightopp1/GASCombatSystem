@@ -6,6 +6,8 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
+#include "Core/Systems/Combat/Tags/CombatGameplayTags.h"
+#include "Core/Systems/UI/PlayerUI/PlayerHUDWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 
@@ -47,7 +49,21 @@ void APlayerCombatCharacter::NotifyControllerChanged()
 		{
 			if (DefaultMappingContext)
 			{
+				UE_LOG(LogTemp, Warning, TEXT("Mapping context was added"));
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			}
+		}
+		
+		//Creating the widget
+		if (!HUDWidget && HUDWidgetClass && PC->IsLocalController())
+		{
+			HUDWidget = CreateWidget<UPlayerHUDWidget>(PC, HUDWidgetClass);
+			UE_LOG(LogTemp, Warning, TEXT("HUDWidget was created"));
+			if (HUDWidget)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("HUDWidget added to viewport"));
+				HUDWidget->InitFromAbilitySystemComponent(GetAbilitySystemComponent());
+				HUDWidget->AddToViewport();
 			}
 		}
 	}
@@ -62,6 +78,7 @@ void APlayerCombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 	{
 		Input->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCombatCharacter::Move);
 		Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCombatCharacter::Look);
+		Input->BindAction(LightAttackAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnLightAttack);
 	}
 }
 
@@ -83,4 +100,9 @@ void APlayerCombatCharacter::Look(const FInputActionValue& Value)
 	const FVector2D Input = Value.Get<FVector2D>();
 	AddControllerYawInput(Input.X);
 	AddControllerPitchInput(Input.Y);
+}
+
+void APlayerCombatCharacter::OnLightAttack()
+{
+	AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(CombatTags::Ability_Attack_Light.GetTag()));
 }

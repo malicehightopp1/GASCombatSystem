@@ -6,6 +6,7 @@
 #include "Core/Systems/Combat/Character/CombatCharacter.h"
 #include "PlayerCombatCharacter.generated.h"
 
+class UPlayerHUDWidget;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
@@ -19,6 +20,13 @@ class APlayerCombatCharacter : public ACombatCharacter
 	
 public:
 	APlayerCombatCharacter();
+	
+	//============================================//
+	//                UI                          //
+	//============================================//
+	
+	UPROPERTY(EditDefaultsOnly, Category = "UI") TSubclassOf<UPlayerHUDWidget> HUDWidgetClass;
+	UPROPERTY() TObjectPtr<UPlayerHUDWidget> HUDWidget; 
 	
 protected:
 	//============================================//
@@ -38,12 +46,17 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	TObjectPtr<UInputMappingContext> DefaultMappingContext;
+	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputMappingContext> DefaultMappingContext;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	TObjectPtr<UInputAction> MoveAction;
+	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> MoveAction;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Input")
-	TObjectPtr<UInputAction> LookAction;
+	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> LookAction;
+	
+	//============================================//
+	//                AttackingInput              //
+	//============================================//
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> LightAttackAction;
+	
+	void OnLightAttack();
 };

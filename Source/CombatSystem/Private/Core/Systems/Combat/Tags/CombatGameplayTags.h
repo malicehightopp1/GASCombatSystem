@@ -21,8 +21,10 @@ namespace CombatTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_HitReact);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Ability_Stagger);
 	
+	
 	//Definind the states needed for interupting - During action tags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Attacking);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Sprinting);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Blocking);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Dodging);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Parrying);

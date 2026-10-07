@@ -19,6 +19,7 @@ namespace CombatTags
 	
 	UE_DEFINE_GAMEPLAY_TAG(State_Attacking, "State.Attacking");
 	UE_DEFINE_GAMEPLAY_TAG(State_Blocking, "State.Blocking");
+	UE_DEFINE_GAMEPLAY_TAG(State_Sprinting, "State.Sprinting");
 	UE_DEFINE_GAMEPLAY_TAG(State_Dodging, "State.Dodging");
 	UE_DEFINE_GAMEPLAY_TAG(State_Parrying, "State.Parrying");
 	UE_DEFINE_GAMEPLAY_TAG(State_HitStunned, "State.HitStunned");
