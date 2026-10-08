@@ -77,7 +77,6 @@ bool UWeaponComponent::GetBladeLocations(FVector& OutStart, FVector& OutEnd) con
 	const FName StartName = CurrentWeapon->TraceStartSocket;
 	const FName EndName = CurrentWeapon->TraceEndSocket;
 
-	// Weapon mesh sockets (swords, hammers)
 	const UStaticMeshComponent* Weapon = Character->GetWeaponMesh();
 	if (Weapon && Weapon->GetStaticMesh() && Weapon->DoesSocketExist(StartName) && Weapon->DoesSocketExist(EndName))
 	{
@@ -86,7 +85,6 @@ bool UWeaponComponent::GetBladeLocations(FVector& OutStart, FVector& OutEnd) con
 		return true;
 	}
 
-	// Character bones/sockets (fists, kicks)
 	const USkeletalMeshComponent* Body = Character->GetMesh();
 	if (Body && Body->DoesSocketExist(StartName) && Body->DoesSocketExist(EndName))
 	{

@@ -3,13 +3,14 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "CombatGameplayAbilities.h"
 #include "Abilities/GameplayAbility.h"
 #include "Core/Systems/Combat/Weapons/UWeaponData.h"
 #include "MeleeAttack.generated.h"
 
 
 UCLASS()
-class UMeleeAttack : public UGameplayAbility
+class UMeleeAttack : public UCombatGameplayAbilities
 {
 	GENERATED_BODY()
 	
@@ -17,8 +18,9 @@ public:
 	UMeleeAttack();
 	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	
 protected:
+	
+	virtual float GetStaminaCost(const FGameplayAbilityActorInfo* ActorInfo) const override;
 	UPROPERTY(EditDefaultsOnly, Category = "Attack") EAttackSlot AttackSlot = EAttackSlot::Light;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Attack") FAttackData CurrentAttack;

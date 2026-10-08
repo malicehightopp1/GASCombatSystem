@@ -76,10 +76,16 @@ void APlayerCombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 	
 	if (UEnhancedInputComponent* Input = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
+		//Locomotion
 		Input->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlayerCombatCharacter::Move);
 		Input->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlayerCombatCharacter::Look);
+		
+		//Attacks
 		Input->BindAction(LightAttackAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnLightAttack);
 		Input->BindAction(HeavyAttackAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnHeavyAttack);
+		Input->BindAction(Special1Action, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnSpecial1);
+		Input->BindAction(Special2Action, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnSpecial2);
+		Input->BindAction(Special3Action, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnSpecial3);
 	}
 }
 
@@ -105,15 +111,41 @@ void APlayerCombatCharacter::Look(const FInputActionValue& Value)
 
 void APlayerCombatCharacter::ActivateAbilityByTag(const FGameplayTag& AbilityTag)
 {
+	if (!AbilitySystemComponent)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Ability system Component is NULL"))
+		return;
+	}
 	AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(AbilityTag));
+	UE_LOG(LogTemp, Warning, TEXT("Ability was called"))
 }
 
 void APlayerCombatCharacter::OnLightAttack()
 {
 	ActivateAbilityByTag(CombatTags::Ability_Attack_Light.GetTag());
+	UE_LOG(LogTemp, Warning, TEXT("Light attack called Ability should of been called"))
 }
 
 void APlayerCombatCharacter::OnHeavyAttack()
 {
 	ActivateAbilityByTag(CombatTags::Ability_Attack_Heavy.GetTag());
+	UE_LOG(LogTemp, Warning, TEXT("Heavy attack called Ability should of been called"))
+}
+
+void APlayerCombatCharacter::OnSpecial1()
+{
+	ActivateAbilityByTag(CombatTags::Ability_Attack_Special1.GetTag());
+	UE_LOG(LogTemp, Warning, TEXT("Special 1 attack called Ability should of been called"))
+}
+
+void APlayerCombatCharacter::OnSpecial2()
+{
+	ActivateAbilityByTag(CombatTags::Ability_Attack_Special2.GetTag());
+	UE_LOG(LogTemp, Warning, TEXT("Special 2 attack called Ability should of been called"))
+}
+
+void APlayerCombatCharacter::OnSpecial3()
+{
+	ActivateAbilityByTag(CombatTags::Ability_Attack_Special3.GetTag());
+	UE_LOG(LogTemp, Warning, TEXT("Special 3 attack called Ability should of been called"))
 }

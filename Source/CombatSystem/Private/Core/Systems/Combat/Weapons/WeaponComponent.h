@@ -21,14 +21,11 @@ class UWeaponComponent : public UActorComponent
 public:
 	UWeaponComponent();
 
-	UFUNCTION(BlueprintCallable, Category = "Weapon")
-	void EquipWeapon(UUWeaponData* NewWeapon);
+	UFUNCTION(BlueprintCallable, Category = "Weapon")void EquipWeapon(UUWeaponData* NewWeapon);
 
-	UFUNCTION(BlueprintPure, Category = "Weapon")
-	UUWeaponData* GetCurrentWeapon() const { return CurrentWeapon; }
+	UFUNCTION(BlueprintPure, Category = "Weapon")UUWeaponData* GetCurrentWeapon() const { return CurrentWeapon; }
 
-	UFUNCTION(BlueprintPure, Category = "Weapon")
-	float GetMoveSpeedForWeight(float InWeight) const;
+	UFUNCTION(BlueprintPure, Category = "Weapon")float GetMoveSpeedForWeight(float InWeight) const;
 
 	//============================================//
 	//                Hit detection               //
@@ -53,6 +50,7 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Weapon|Tuning") float MinMoveSpeed = 250.f;
 
 	UPROPERTY(EditAnywhere, Category = "Weapon|Debug") bool bDrawDebugTraces = false;
+	float TraceRadius = 20.f;
 
 private:
 	UAbilitySystemComponent* GetOwnerASC() const;
@@ -62,7 +60,6 @@ private:
 	FActiveGameplayEffectHandle WeaponStatsHandle;
 
 	bool bTracing = false;
-	float TraceRadius = 20.f;
 	FVector PrevBladeStart = FVector::ZeroVector;
 	FVector PrevBladeEnd = FVector::ZeroVector;
 	TArray<TWeakObjectPtr<AActor>> HitActorsThisSwing;

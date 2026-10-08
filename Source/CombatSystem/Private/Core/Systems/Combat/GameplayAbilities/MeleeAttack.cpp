@@ -26,25 +26,45 @@ void UMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-	
+
 	if (!CommitAbility(Handle, ActorInfo, ActivationInfo))
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
 	}
-	
-	const float AttackSpeed = GetAbilitySystemComponentFromActorInfo() ->GetNumericAttribute(UCombatAttributeSet::GetAttackSpeedAttribute());
+
+	const float AttackSpeed = GetAbilitySystemComponentFromActorInfo()->GetNumericAttribute(UCombatAttributeSet::GetAttackSpeedAttribute());
 	const float PlayRate = AttackSpeed > 0.f ? AttackSpeed : 1.f;
+
+	UAbilityTask_PlayMontageAndWait* MontageTask =UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, CurrentAttack.Montage, PlayRate);
+
+	MontageTask->OnCompleted.AddDynamic(this, &UMeleeAttack::OnMontageFinished);
+	MontageTask->OnBlendOut.AddDynamic(this, &UMeleeAttack::OnMontageFinished);
+	MontageTask->OnInterrupted.AddDynamic(this, &UMeleeAttack::OnMontageCancelled);
+	MontageTask->OnCancelled.AddDynamic(this, &UMeleeAttack::OnMontageCancelled);
+
+	MontageTask->ReadyForActivation();
+}
+
+float UMeleeAttack::GetStaminaCost(const FGameplayAbilityActorInfo* ActorInfo) const
+{
+	const ACombatCharacter* Character = ActorInfo ? Cast<ACombatCharacter>(ActorInfo->AvatarActor.Get()) : nullptr;
+	const UWeaponComponent* WeaponComp = Character ? Character->GetWeaponComponent() : nullptr;
+	const UUWeaponData* Weapon = WeaponComp ? WeaponComp->GetCurrentWeapon() : nullptr;
 	
-	UAbilityTask_PlayMontageAndWait* MontageTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, CurrentAttack.Montage, PlayRate);
+	//this is deciding the stamina cost per ability
+	return Weapon ? Weapon->StaminaCost * CurrentAttack.StaminaCostMultiplier : 0.f;
+	
 }
 
 void UMeleeAttack::OnMontageFinished()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	UE_LOG(LogTemp, Warning, TEXT("Montage finished"))
 }
 
 void UMeleeAttack::OnMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
+	UE_LOG(LogTemp, Warning, TEXT("Montage Cancelled"))
 }

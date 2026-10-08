@@ -60,9 +60,16 @@ protected:
 	
 	void OnLightAttack();
 	void OnHeavyAttack();
+	void OnSpecial1();
+	void OnSpecial2();
+	void OnSpecial3();
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> HeavyAttackAction;
-	
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> LightAttackAction;
+	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> Special1Action;
+	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> Special2Action;
+	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> Special3Action;
+
+	
 	
 };
