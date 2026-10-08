@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Core/Systems/Combat/Character/CombatCharacter.h"
 #include "PlayerCombatCharacter.generated.h"
 
@@ -69,7 +70,17 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> Special1Action;
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> Special2Action;
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> Special3Action;
-
 	
+	//============================================//
+	//                Input Buffer                //
+	//============================================//
+
+	virtual void BeginPlay() override;
+	UPROPERTY(EditDefaultsOnly, Category = "Combo | Input") float InputBufferTime = 0.4f;
+	FGameplayTag BufferedAbilityTag;
+	float BufferedTime = -1.0f;
+	
+	void OnBufferTagChanged(const FGameplayTag Tag, int32 NewCount);
+	void TryBufferedAbility();
 	
 };

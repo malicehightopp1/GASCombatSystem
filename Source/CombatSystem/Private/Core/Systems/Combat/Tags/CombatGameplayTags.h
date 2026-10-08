@@ -34,6 +34,7 @@ namespace CombatTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_Invulnerable); //TBD - If i want to have a few seconds of inv at spawn
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_HyperArmour); //if they have this active wont flinch or have a stance break
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_LockedOn);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(State_ComboWindow);
 	
 	//Events
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Event_Hit);

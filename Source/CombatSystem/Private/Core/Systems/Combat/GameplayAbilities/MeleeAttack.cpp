@@ -15,6 +15,7 @@
 UMeleeAttack::UMeleeAttack()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	bRetriggerInstancedAbility = true;
 }
 
 void UMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -23,6 +24,15 @@ void UMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	UWeaponComponent* WeaponComp = Character ? Character->GetWeaponComponent() : nullptr;
 	UUWeaponData* Weapon = WeaponComp ? WeaponComp->GetCurrentWeapon() : nullptr;
 
+	const bool bChained = bComboReady && (GetWorld()->GetTimeSeconds() - ComboReadyTime) < 0.05f;
+	ComboIndex = bChained ? ComboIndex + 1 : 0;
+	bComboReady = false;
+	
+	if (Weapon)
+	{
+		ComboIndex %= Weapon->GetComboLength(AttackSlot);
+	}
+	
 	if (!Weapon || !Weapon->GetAttack(AttackSlot, 0, CurrentAttack))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s: equipped weapon has no attack for this slot"), *GetName());
@@ -59,6 +69,34 @@ void UMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	HitTask->ReadyForActivation();
 }
 
+bool UMeleeAttack::CanActivateAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo, const FGameplayTagContainer* SourceTags,const FGameplayTagContainer* TargetTags, FGameplayTagContainer* OptionalRelevantTags) const
+{
+	const UAbilitySystemComponent* ASC = ActorInfo ? ActorInfo->AbilitySystemComponent.Get() : nullptr;
+	
+	if (ASC && ASC->HasMatchingGameplayTag(CombatTags::State_Attacking.GetTag()) && !ASC->HasMatchingGameplayTag(CombatTags::State_ComboWindow.GetTag()))
+	{
+		return false;
+	}
+	
+	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
+}
+
+void UMeleeAttack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	if (IsActive())
+	{
+		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponentFromActorInfo())
+		{
+			bComboReady = ASC->HasMatchingGameplayTag(CombatTags::State_ComboWindow.GetTag());
+			ComboReadyTime = GetWorld()->GetTimeSeconds();
+
+			ASC->SetLooseGameplayTagCount(CombatTags::State_ComboWindow.GetTag(), 0);
+		}
+	}
+	
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
 float UMeleeAttack::GetStaminaCost(const FGameplayAbilityActorInfo* ActorInfo) const
 {
 	const ACombatCharacter* Character = ActorInfo ? Cast<ACombatCharacter>(ActorInfo->AvatarActor.Get()) : nullptr;
@@ -93,12 +131,6 @@ void UMeleeAttack::OnHitEvent(FGameplayEventData Payload)
 
 	const float WeaponDamage = SourceASC->GetNumericAttribute(UCombatAttributeSet::GetDamageAttribute());
 	const float FinalDamage  = WeaponDamage * CurrentAttack.DamageMultiplier;
-
-	UE_LOG(LogTemp, Warning, TEXT("HIT %s | TargetASC=%s | DamageEffect=%s | WeaponDamage=%.1f | Multiplier=%.2f | Final=%.1f"),
-	*GetNameSafe(Payload.Target.Get()),
-	TargetASC ? TEXT("yes") : TEXT("NO"),
-	*GetNameSafe(DamageEffect.Get()),
-	WeaponDamage, CurrentAttack.DamageMultiplier, FinalDamage);
 	
 	FGameplayEffectSpecHandle Spec = MakeOutgoingGameplayEffectSpec(DamageEffect, GetAbilityLevel());
 	if (!Spec.IsValid()) return;
@@ -107,11 +139,4 @@ void UMeleeAttack::OnHitEvent(FGameplayEventData Payload)
 	Spec.Data->SetSetByCallerMagnitude(CombatTags::Data_StanceDamage.GetTag(), CurrentAttack.StanceDamage);
 
 	SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
-	
-	// DEBUG: what is the target's health right after the hit?
-	UE_LOG(LogTemp, Warning, TEXT("   -> %s Health now %.1f / %.1f"),
-		*GetNameSafe(Payload.Target.Get()),
-		TargetASC->GetNumericAttribute(UCombatAttributeSet::GetHealthAttribute()),
-		TargetASC->GetNumericAttribute(UCombatAttributeSet::GetMaxHealthAttribute()));
-
 }

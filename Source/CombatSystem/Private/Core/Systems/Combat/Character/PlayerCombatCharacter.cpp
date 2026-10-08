@@ -111,13 +111,14 @@ void APlayerCombatCharacter::Look(const FInputActionValue& Value)
 
 void APlayerCombatCharacter::ActivateAbilityByTag(const FGameplayTag& AbilityTag)
 {
-	if (!AbilitySystemComponent)
+	if (AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(AbilityTag)))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Ability system Component is NULL"))
+		BufferedAbilityTag = FGameplayTag();   // it worked, nothing to remember
 		return;
 	}
-	AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(AbilityTag));
-	UE_LOG(LogTemp, Warning, TEXT("Ability was called"))
+
+	BufferedAbilityTag = AbilityTag;
+	BufferedTime = GetWorld()->GetTimeSeconds();
 }
 
 void APlayerCombatCharacter::OnLightAttack()
@@ -148,4 +149,38 @@ void APlayerCombatCharacter::OnSpecial3()
 {
 	ActivateAbilityByTag(CombatTags::Ability_Attack_Special3.GetTag());
 	UE_LOG(LogTemp, Warning, TEXT("Special 3 attack called Ability should of been called"))
+}
+
+void APlayerCombatCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	AbilitySystemComponent->RegisterGameplayTagEvent(CombatTags::State_ComboWindow.GetTag(), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &APlayerCombatCharacter::OnBufferTagChanged);
+	AbilitySystemComponent->RegisterGameplayTagEvent(CombatTags::State_Attacking.GetTag(), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &APlayerCombatCharacter::OnBufferTagChanged);
+}
+
+void APlayerCombatCharacter::OnBufferTagChanged(const FGameplayTag Tag, int32 NewCount)
+{
+	const bool bComboWindowOpened = Tag == CombatTags::State_ComboWindow.GetTag() && NewCount > 0;
+	const bool bAttackFinished    = Tag == CombatTags::State_Attacking.GetTag()   && NewCount == 0;
+
+	if (bComboWindowOpened || bAttackFinished)
+	{
+		GetWorldTimerManager().SetTimerForNextTick(this, &APlayerCombatCharacter::TryBufferedAbility);
+	}
+}
+
+void APlayerCombatCharacter::TryBufferedAbility()
+{
+	if (!BufferedAbilityTag.IsValid()) return;
+
+	if (GetWorld()->GetTimeSeconds() - BufferedTime > InputBufferTime)
+	{
+		BufferedAbilityTag = FGameplayTag();
+		return;
+	}
+
+	const FGameplayTag Tag = BufferedAbilityTag;
+	BufferedAbilityTag = FGameplayTag();
+	AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(Tag));
 }

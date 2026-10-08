@@ -28,6 +28,7 @@ namespace CombatTags
 	UE_DEFINE_GAMEPLAY_TAG(State_Invulnerable, "State.Invulnerable");
 	UE_DEFINE_GAMEPLAY_TAG(State_HyperArmour, "State.HyperArmour");
 	UE_DEFINE_GAMEPLAY_TAG(State_LockedOn, "State.LockedOn");
+	UE_DEFINE_GAMEPLAY_TAG(State_ComboWindow, "State.ComboWindow");
 
 	UE_DEFINE_GAMEPLAY_TAG(Event_Hit, "Event.Hit");
 	UE_DEFINE_GAMEPLAY_TAG(Event_HitReact, "Event.HitReact");

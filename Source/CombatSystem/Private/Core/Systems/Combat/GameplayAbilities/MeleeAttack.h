@@ -18,6 +18,8 @@ public:
 	UMeleeAttack();
 	
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+	virtual bool CanActivateAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo,const FGameplayTagContainer* SourceTags = nullptr,const FGameplayTagContainer* TargetTags = nullptr,FGameplayTagContainer* OptionalRelevantTags = nullptr) const override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo,bool bReplicateEndAbility, bool bWasCancelled) override;
 protected:
 	//============================================//
 	//					Basic setup               //
@@ -36,4 +38,12 @@ protected:
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Damage") TSubclassOf<UGameplayEffect> DamageEffect;
 	UFUNCTION() void OnHitEvent(FGameplayEventData Payload);
+	
+	//============================================//
+	//					Combo                     //
+	//============================================//
+	
+	int32 ComboIndex = 0;
+	bool bComboReady = false;
+	float ComboReadyTime = -1.0f;
 };
