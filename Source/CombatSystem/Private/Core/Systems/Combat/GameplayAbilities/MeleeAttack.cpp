@@ -33,7 +33,7 @@ void UMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		ComboIndex %= Weapon->GetComboLength(AttackSlot);
 	}
 	
-	if (!Weapon || !Weapon->GetAttack(AttackSlot, 0, CurrentAttack))
+	if (!Weapon || !Weapon->GetAttack(AttackSlot, ComboIndex, CurrentAttack))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("%s: equipped weapon has no attack for this slot"), *GetName());
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
