@@ -4,9 +4,12 @@
 #include "Core/Systems/Combat/GameplayAbilities/MeleeAttack.h"
 
 #include "AbilitySystemComponent.h"
+#include "AbilitySystemGlobals.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Core/Systems/Combat/Character/CombatCharacter.h"
 #include "Core/Systems/Combat/Sets/CombatAttributeSet.h"
+#include "Core/Systems/Combat/Tags/CombatGameplayTags.h"
 #include "Core/Systems/Combat/Weapons/WeaponComponent.h"
 
 UMeleeAttack::UMeleeAttack()
@@ -35,7 +38,12 @@ void UMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 
 	const float AttackSpeed = GetAbilitySystemComponentFromActorInfo()->GetNumericAttribute(UCombatAttributeSet::GetAttackSpeedAttribute());
 	const float PlayRate = AttackSpeed > 0.f ? AttackSpeed : 1.f;
-
+	
+	//Tells the weapon the hitbox
+	if (WeaponComp)
+	{
+		WeaponComp->TraceRadius = CurrentAttack.HitBox.TraceRadius;
+	}
 	UAbilityTask_PlayMontageAndWait* MontageTask =UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, NAME_None, CurrentAttack.Montage, PlayRate);
 
 	MontageTask->OnCompleted.AddDynamic(this, &UMeleeAttack::OnMontageFinished);
@@ -44,6 +52,11 @@ void UMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	MontageTask->OnCancelled.AddDynamic(this, &UMeleeAttack::OnMontageCancelled);
 
 	MontageTask->ReadyForActivation();
+	
+	UAbilityTask_WaitGameplayEvent* HitTask = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent( this, CombatTags::Event_Hit.GetTag(), nullptr, false, true);
+
+	HitTask->EventReceived.AddDynamic(this, &UMeleeAttack::OnHitEvent);
+	HitTask->ReadyForActivation();
 }
 
 float UMeleeAttack::GetStaminaCost(const FGameplayAbilityActorInfo* ActorInfo) const
@@ -67,4 +80,38 @@ void UMeleeAttack::OnMontageCancelled()
 {
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
 	UE_LOG(LogTemp, Warning, TEXT("Montage Cancelled"))
+}
+
+void UMeleeAttack::OnHitEvent(FGameplayEventData Payload)
+{
+	UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo();
+	UAbilitySystemComponent* TargetASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Payload.Target.Get());
+
+	UE_LOG(LogTemp, Warning, TEXT("HIT %s"), *GetNameSafe(Payload.Target.Get()));
+
+	if (!SourceASC || !TargetASC || !DamageEffect) return;
+
+	const float WeaponDamage = SourceASC->GetNumericAttribute(UCombatAttributeSet::GetDamageAttribute());
+	const float FinalDamage  = WeaponDamage * CurrentAttack.DamageMultiplier;
+
+	UE_LOG(LogTemp, Warning, TEXT("HIT %s | TargetASC=%s | DamageEffect=%s | WeaponDamage=%.1f | Multiplier=%.2f | Final=%.1f"),
+	*GetNameSafe(Payload.Target.Get()),
+	TargetASC ? TEXT("yes") : TEXT("NO"),
+	*GetNameSafe(DamageEffect.Get()),
+	WeaponDamage, CurrentAttack.DamageMultiplier, FinalDamage);
+	
+	FGameplayEffectSpecHandle Spec = MakeOutgoingGameplayEffectSpec(DamageEffect, GetAbilityLevel());
+	if (!Spec.IsValid()) return;
+
+	Spec.Data->SetSetByCallerMagnitude(CombatTags::Data_Damage.GetTag(), FinalDamage);
+	Spec.Data->SetSetByCallerMagnitude(CombatTags::Data_StanceDamage.GetTag(), CurrentAttack.StanceDamage);
+
+	SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
+	
+	// DEBUG: what is the target's health right after the hit?
+	UE_LOG(LogTemp, Warning, TEXT("   -> %s Health now %.1f / %.1f"),
+		*GetNameSafe(Payload.Target.Get()),
+		TargetASC->GetNumericAttribute(UCombatAttributeSet::GetHealthAttribute()),
+		TargetASC->GetNumericAttribute(UCombatAttributeSet::GetMaxHealthAttribute()));
+
 }

@@ -4,6 +4,8 @@
 #include "Core/Systems/Combat/Sets/CombatAttributeSet.h"
 
 #include "GameplayEffectExtension.h"
+#include "Core/Systems/Combat/Character/CombatCharacter.h"
+#include "Core/Systems/Combat/Tags/CombatGameplayTags.h"
 
 namespace CombatTuning
 {
@@ -63,5 +65,24 @@ void UCombatAttributeSet::ClampAttributes(const FGameplayAttribute& Attribute, f
 
 void UCombatAttributeSet::HandleIncomingDamage(const FGameplayEffectModCallbackData& Data, float RawDamage)
 {
+	UAbilitySystemComponent& TargetASC = Data.Target;
+	AActor* Victim = TargetASC.GetAvatarActor();
 
+	if (TargetASC.HasMatchingGameplayTag(CombatTags::State_Dead.GetTag())) return;
+
+	const float DefenseMult = 100.f / (100.f + GetDefense());
+	const float FinalDamage = RawDamage * DefenseMult;
+
+	SetHealth(FMath::Clamp(GetHealth() - FinalDamage, 0.f, GetMaxHealth()));
+
+	const float StanceDamage = Data.EffectSpec.GetSetByCallerMagnitude(CombatTags::Data_StanceDamage.GetTag(), false, 0.f) * DefenseMult;
+	SetStance(FMath::Max(GetStance() - StanceDamage, 0.f));
+
+	if (GetHealth() <= 0.f)
+	{
+		if (ACombatCharacter* CombatChar = Cast<ACombatCharacter>(Victim))
+		{
+			CombatChar->HandleDeath();
+		}
+	}
 }

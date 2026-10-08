@@ -48,7 +48,7 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat") TObjectPtr<UWeaponComponent> WeaponComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat") TObjectPtr<UStaticMeshComponent> WeaponMesh;
-	UPROPERTY(EditDefaultsOnly, Category = "Combat|Setup") TObjectPtr<UUWeaponData> StartingWeapon;
+	UPROPERTY(EditAnywhere, Category = "Combat|Setup") TObjectPtr<UUWeaponData> StartingWeapon;
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Setup") FName WeaponSocketName = TEXT("weapon_r");
 
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Setup") TSubclassOf<UGameplayEffect> DefaultAttributesEffect;

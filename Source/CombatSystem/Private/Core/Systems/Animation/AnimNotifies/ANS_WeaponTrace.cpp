@@ -2,7 +2,6 @@
 
 
 #include "Core/Systems/Animation/AnimNotifies/ANS_WeaponTrace.h"
-
 #include "Core/Systems/Combat/Weapons/WeaponComponent.h"
 
 static UWeaponComponent* GetWeaponcomp(USkeletalMeshComponent* MeshComp)
@@ -16,7 +15,7 @@ void UANS_WeaponTrace::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSequen
 	
 	if (UWeaponComponent* Weapon = GetWeaponcomp(MeshComp))
 	{
-		Weapon->BeginAttackTrace(Weapon->TraceRadius); // blade goes live
+		Weapon->BeginAttackTrace(Weapon->TraceRadius);
 	}
 }
 
