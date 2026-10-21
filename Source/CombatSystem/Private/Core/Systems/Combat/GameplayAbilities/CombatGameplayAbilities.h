@@ -22,6 +22,9 @@ public:
 	virtual void ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo) const override;
 	
 protected:
+	//============================================//
+	//					Stamina                   //
+	//============================================//
 	virtual float GetStaminaCost(const FGameplayAbilityActorInfo* ActorInfo) const;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Ability Costs") float StaminaCost = 0.0f;

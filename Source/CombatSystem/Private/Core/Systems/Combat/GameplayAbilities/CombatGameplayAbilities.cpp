@@ -46,6 +46,8 @@ void UCombatGameplayAbilities::ApplyCost(const FGameplayAbilitySpecHandle Handle
 		ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, Spec);
 	}
 	
+	
+	
 }
 
 float UCombatGameplayAbilities::GetStaminaCost(const FGameplayAbilityActorInfo* ActorInfo) const

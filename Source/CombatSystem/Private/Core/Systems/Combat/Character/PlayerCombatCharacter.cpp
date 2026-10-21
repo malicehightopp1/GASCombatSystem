@@ -44,6 +44,7 @@ void APlayerCombatCharacter::NotifyControllerChanged()
 	
 	if (APlayerController* PC = Cast<APlayerController>(Controller))
 	{
+		//gibing mapping context and inputs
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem =
 			ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
 		{
@@ -86,6 +87,8 @@ void APlayerCombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		Input->BindAction(Special1Action, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnSpecial1);
 		Input->BindAction(Special2Action, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnSpecial2);
 		Input->BindAction(Special3Action, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnSpecial3);
+		
+		Input->BindAction(DodgeAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnDodge);
 	}
 }
 
@@ -113,7 +116,7 @@ void APlayerCombatCharacter::ActivateAbilityByTag(const FGameplayTag& AbilityTag
 {
 	if (AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(AbilityTag)))
 	{
-		BufferedAbilityTag = FGameplayTag();   // it worked, nothing to remember
+		BufferedAbilityTag = FGameplayTag();   // it worke nothing to remember
 		return;
 	}
 
@@ -151,20 +154,28 @@ void APlayerCombatCharacter::OnSpecial3()
 	UE_LOG(LogTemp, Warning, TEXT("Special 3 attack called Ability should of been called"))
 }
 
+void APlayerCombatCharacter::OnDodge()
+{
+	ActivateAbilityByTag(CombatTags::Ability_Dodge.GetTag());
+	UE_LOG(LogTemp, Warning, TEXT("Dodge got called Ability should of been called"))
+}
+
 void APlayerCombatCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
 	AbilitySystemComponent->RegisterGameplayTagEvent(CombatTags::State_ComboWindow.GetTag(), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &APlayerCombatCharacter::OnBufferTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(CombatTags::State_Attacking.GetTag(), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &APlayerCombatCharacter::OnBufferTagChanged);
+	AbilitySystemComponent->RegisterGameplayTagEvent(CombatTags::State_Dodging.GetTag(), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &APlayerCombatCharacter::OnBufferTagChanged);
 }
 
 void APlayerCombatCharacter::OnBufferTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
 	const bool bComboWindowOpened = Tag == CombatTags::State_ComboWindow.GetTag() && NewCount > 0;
-	const bool bAttackFinished    = Tag == CombatTags::State_Attacking.GetTag()   && NewCount == 0;
+	const bool bAttackFinished    = Tag == CombatTags::State_Attacking.GetTag() && NewCount == 0;
+	const bool bDodgeFinished     = Tag == CombatTags::State_Dodging.GetTag() && NewCount == 0;
 
-	if (bComboWindowOpened || bAttackFinished)
+	if (bComboWindowOpened || bAttackFinished || bDodgeFinished)
 	{
 		GetWorldTimerManager().SetTimerForNextTick(this, &APlayerCombatCharacter::TryBufferedAbility);
 	}

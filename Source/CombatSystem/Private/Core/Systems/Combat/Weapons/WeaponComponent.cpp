@@ -135,6 +135,8 @@ void UWeaponComponent::UpdateAttackTrace()
 	Sweep(PrevBladeEnd, BladeEnd);
 	Sweep((PrevBladeStart + PrevBladeEnd) * 0.5f, (BladeStart + BladeEnd) * 0.5f);
 
+	
+	//Actual hitting enemy
 	for (const FHitResult& Hit : AllHits)
 	{
 		AActor* HitActor = Hit.GetActor();
@@ -144,7 +146,10 @@ void UWeaponComponent::UpdateAttackTrace()
 		if (const ACombatCharacter* HitChar = Cast<ACombatCharacter>(HitActor))
 		{
 			if (HitChar->IsDead()) continue;
-			if (OwnerChar && HitChar->GetTeamId() == OwnerChar->GetTeamId()) continue; // no friendly fire
+			
+			
+			//thing from class no friendly fire
+			if (OwnerChar && HitChar->GetTeamId() == OwnerChar->GetTeamId()) continue;
 		}
 
 		HitActorsThisSwing.Add(HitActor);

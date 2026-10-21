@@ -65,22 +65,31 @@ protected:
 	void OnSpecial2();
 	void OnSpecial3();
 	
+	void OnDodge();
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> HeavyAttackAction;
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> LightAttackAction;
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> Special1Action;
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> Special2Action;
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> Special3Action;
 	
+	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> DodgeAction;
+	
 	//============================================//
 	//                Input Buffer                //
 	//============================================//
 
+	/* research this a bit more - seems to be working fine but not sure exactly what its doing
+	 * 
+	 * TODO: add the dodge into the input buffer so you can dodge right after attacking*/
+	
 	virtual void BeginPlay() override;
+	void OnBufferTagChanged(const FGameplayTag Tag, int32 NewCount);
+	void TryBufferedAbility();
+	
 	UPROPERTY(EditDefaultsOnly, Category = "Combo | Input") float InputBufferTime = 0.4f;
 	FGameplayTag BufferedAbilityTag;
 	float BufferedTime = -1.0f;
 	
-	void OnBufferTagChanged(const FGameplayTag Tag, int32 NewCount);
-	void TryBufferedAbility();
 	
 };

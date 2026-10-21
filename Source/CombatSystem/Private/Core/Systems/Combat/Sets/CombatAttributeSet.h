@@ -39,6 +39,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Player | Stats | Stamina") FGameplayAttributeData MaxStamina;
 	COMBAT_ATTRIBUTE_ACCESSORS(UCombatAttributeSet, MaxStamina)
 	
+	//stance 
 	UPROPERTY(BlueprintReadOnly, Category = "Player | Stats | Stamina") FGameplayAttributeData Stance;
 	COMBAT_ATTRIBUTE_ACCESSORS(UCombatAttributeSet, Stance)
 

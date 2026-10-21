@@ -22,41 +22,56 @@ class ACombatCharacter : public ACharacter, public IAbilitySystemInterface
 public:
 	ACombatCharacter();
 
+	//============================================//
+	//					Getters                   //
+	//============================================//
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override { return AbilitySystemComponent; }
 
 	UFUNCTION(BlueprintPure, Category = "Combat") UCombatAttributeSet* GetCombatAttributes() const { return AttributeSet; }
 	UFUNCTION(BlueprintPure, Category = "Combat") UWeaponComponent* GetWeaponComponent() const { return WeaponComponent; }
 	UFUNCTION(BlueprintPure, Category = "Combat") UStaticMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
-	
-	
 	UFUNCTION(BlueprintPure, Category = "Combat") uint8 GetTeamId() const { return TeamId; }
+	
+	
+	//============================================//
+	//					Player death              //
+	//============================================//
 	UFUNCTION(BlueprintPure, Category = "Combat") bool IsDead() const;
-
 	virtual void HandleDeath();
 
 protected:
 	virtual void BeginPlay() override;
+	
 	virtual void InitAbilitySystem();
 	void ApplyEffectToSelf(TSubclassOf<UGameplayEffect> EffectClass);
-	
 	void OnMovementSpeedChanged(const FOnAttributeChangeData& Data);
 
-	UFUNCTION(BlueprintImplementableEvent, Category = "Combat", meta = (DisplayName = "On Death")) void BP_OnDeath();
-
+	//============================================//
+	//				player ability setup          //
+	//============================================//
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat") TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 	UPROPERTY() TObjectPtr<UCombatAttributeSet> AttributeSet;
 
+	//============================================//
+	//					Weapon stats              //
+	//============================================//
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat") TObjectPtr<UWeaponComponent> WeaponComponent;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat") TObjectPtr<UStaticMeshComponent> WeaponMesh;
 	UPROPERTY(EditAnywhere, Category = "Combat|Setup") TObjectPtr<UUWeaponData> StartingWeapon;
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Setup") FName WeaponSocketName = TEXT("weapon_r");
 
+	//============================================//
+	//				Gameplay effects              //
+	//============================================//
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Setup") TSubclassOf<UGameplayEffect> DefaultAttributesEffect;
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Setup") TArray<TSubclassOf<UGameplayEffect>> StartupEffects;
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Setup") TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+	
 
-
-	UPROPERTY(EditDefaultsOnly, Category = "Combat|Setup") uint8 TeamId = 0;
-
+	//============================================//
+	//					Player death              //
+	//============================================//
+	UFUNCTION(BlueprintImplementableEvent, Category = "Combat", meta = (DisplayName = "On Death")) void BP_OnDeath();
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Death") TObjectPtr<UAnimMontage> DeathMontage;
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Setup") uint8 TeamId = 0;
 };
