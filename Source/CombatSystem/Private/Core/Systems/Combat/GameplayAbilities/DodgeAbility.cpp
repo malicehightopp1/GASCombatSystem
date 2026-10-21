@@ -29,7 +29,6 @@ void UDodgeAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,cons
 {
 	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
 
-	// 1) Which direction, and which animation?
 	const FVector InputDir = Character ? Character->GetLastMovementInputVector().GetSafeNormal2D() : FVector::ZeroVector;
 
 	UAnimMontage* MontageToPlay = RollMontage;

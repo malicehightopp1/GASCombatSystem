@@ -164,6 +164,7 @@ void APlayerCombatCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	AbilitySystemComponent->RegisterGameplayTagEvent(CombatTags::State_HitStunned.GetTag(), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &APlayerCombatCharacter::OnBufferTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(CombatTags::State_ComboWindow.GetTag(), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &APlayerCombatCharacter::OnBufferTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(CombatTags::State_Attacking.GetTag(), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &APlayerCombatCharacter::OnBufferTagChanged);
 	AbilitySystemComponent->RegisterGameplayTagEvent(CombatTags::State_Dodging.GetTag(), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &APlayerCombatCharacter::OnBufferTagChanged);
@@ -172,10 +173,11 @@ void APlayerCombatCharacter::BeginPlay()
 void APlayerCombatCharacter::OnBufferTagChanged(const FGameplayTag Tag, int32 NewCount)
 {
 	const bool bComboWindowOpened = Tag == CombatTags::State_ComboWindow.GetTag() && NewCount > 0;
-	const bool bAttackFinished    = Tag == CombatTags::State_Attacking.GetTag() && NewCount == 0;
-	const bool bDodgeFinished     = Tag == CombatTags::State_Dodging.GetTag() && NewCount == 0;
+	const bool bAttackFinished = Tag == CombatTags::State_Attacking.GetTag() && NewCount == 0;
+	const bool bDodgeFinished = Tag == CombatTags::State_Dodging.GetTag() && NewCount == 0;
+	const bool bStunFinished = Tag == CombatTags::State_HitStunned.GetTag() && NewCount == 0;
 
-	if (bComboWindowOpened || bAttackFinished || bDodgeFinished)
+	if (bComboWindowOpened || bAttackFinished || bDodgeFinished || bStunFinished)
 	{
 		GetWorldTimerManager().SetTimerForNextTick(this, &APlayerCombatCharacter::TryBufferedAbility);
 	}

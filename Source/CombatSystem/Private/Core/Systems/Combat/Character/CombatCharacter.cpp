@@ -115,3 +115,10 @@ void ACombatCharacter::HandleDeath()
 
 	BP_OnDeath();
 }
+
+void ACombatCharacter::SetStrafeMode(bool bStrafe)
+{
+	UCharacterMovementComponent* Move = GetCharacterMovement();
+	Move->bOrientRotationToMovement = !bStrafe; 
+	Move->bUseControllerDesiredRotation =  bStrafe; 
+}

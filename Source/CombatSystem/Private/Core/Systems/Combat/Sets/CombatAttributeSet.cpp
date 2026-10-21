@@ -3,6 +3,7 @@
 
 #include "Core/Systems/Combat/Sets/CombatAttributeSet.h"
 
+#include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffectExtension.h"
 #include "Core/Systems/Combat/Character/CombatCharacter.h"
 #include "Core/Systems/Combat/Tags/CombatGameplayTags.h"
@@ -66,13 +67,14 @@ void UCombatAttributeSet::ClampAttributes(const FGameplayAttribute& Attribute, f
 void UCombatAttributeSet::HandleIncomingDamage(const FGameplayEffectModCallbackData& Data, float RawDamage)
 {
 	UAbilitySystemComponent& TargetASC = Data.Target;
-	AActor* Victim = TargetASC.GetAvatarActor();
+	AActor* Victim   = TargetASC.GetAvatarActor();
+	AActor* Attacker = Data.EffectSpec.GetContext().GetInstigator();
 
 	if (TargetASC.HasMatchingGameplayTag(CombatTags::State_Dead.GetTag())) return;
 
+	// Defense: Damage × 100 / (100 + Defense)
 	const float DefenseMult = 100.f / (100.f + GetDefense());
 	const float FinalDamage = RawDamage * DefenseMult;
-
 	SetHealth(FMath::Clamp(GetHealth() - FinalDamage, 0.f, GetMaxHealth()));
 
 	const float StanceDamage = Data.EffectSpec.GetSetByCallerMagnitude(CombatTags::Data_StanceDamage.GetTag(), false, 0.f) * DefenseMult;
@@ -84,5 +86,16 @@ void UCombatAttributeSet::HandleIncomingDamage(const FGameplayEffectModCallbackD
 		{
 			CombatChar->HandleDeath();
 		}
+		return;  
+	}
+
+	if (!TargetASC.HasMatchingGameplayTag(CombatTags::State_HyperArmour.GetTag()))
+	{
+		FGameplayEventData Payload;
+		Payload.EventTag = CombatTags::Event_HitReact.GetTag();
+		Payload.Instigator = Attacker;   // who hit us, so the ability knows the direction
+		Payload.Target = Victim;
+
+		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Victim, CombatTags::Event_HitReact.GetTag(), Payload);
 	}
 }

@@ -39,6 +39,8 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Combat") bool IsDead() const;
 	virtual void HandleDeath();
 
+	//For targeting locking
+	UFUNCTION(BlueprintCallable, Category = "Combat|Movement") void SetStrafeMode(bool bStrafe);
 protected:
 	virtual void BeginPlay() override;
 	
