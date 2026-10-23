@@ -31,6 +31,7 @@ void UBlockAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,cons
 		const FGameplayEffectSpecHandle Spec = MakeOutgoingGameplayEffectSpec(BlockingEffect, GetAbilityLevel());
 		BlockingEffectHandle = ApplyGameplayEffectSpecToOwner(Handle, ActorInfo, ActivationInfo, Spec);
 	}
+	UE_LOG(LogTemp, Warning, TEXT("BLOCK ability ACTIVATED")); 
 }
 
 void UBlockAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo,bool bReplicateEndAbility, bool bWasCancelled)
@@ -45,4 +46,5 @@ void UBlockAbility::EndAbility(const FGameplayAbilitySpecHandle Handle,const FGa
 	}
 
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+	UE_LOG(LogTemp, Warning, TEXT("BLOCK ability ENDED | cancelled = %d"), bWasCancelled);   
 }

@@ -221,7 +221,10 @@ void APlayerCombatCharacter::TryBufferedAbility()
 }
 void APlayerCombatCharacter::OnBlockStarted()
 {
-	ActivateAbilityByTag(CombatTags::Ability_Block.GetTag()); 
+	const bool bActivated = AbilitySystemComponent->TryActivateAbilitiesByTag(
+	FGameplayTagContainer(CombatTags::Ability_Block.GetTag()));
+
+	UE_LOG(LogTemp, Warning, TEXT("BLOCK pressed | activated = %d"), bActivated);
 }
 
 void APlayerCombatCharacter::OnBlockReleased()
