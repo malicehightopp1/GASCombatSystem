@@ -7,6 +7,7 @@
 #include "Core/Systems/Combat/Character/CombatCharacter.h"
 #include "PlayerCombatCharacter.generated.h"
 
+class UTargetingComponent;
 struct FGameplayTag;
 class UPlayerHUDWidget;
 class UInputAction;
@@ -37,7 +38,13 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera") TObjectPtr<USpringArmComponent> CameraBoom;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera") TObjectPtr<UCameraComponent> FollowCamera;
 	
-	
+	//============================================//
+	//                targeting                   //
+	//============================================//
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")TObjectPtr<UTargetingComponent> TargetingComponent;
+	UPROPERTY(EditDefaultsOnly, Category = "Input")TObjectPtr<UInputAction> LockOnAction;
+
+	void OnLockOn();
 	//============================================//
 	//                Inputs                      //
 	//============================================//

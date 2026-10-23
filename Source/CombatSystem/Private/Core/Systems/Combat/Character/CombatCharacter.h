@@ -4,9 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "Core/Systems/Combat/Targeting/Targetable.h"
 #include "GameFramework/Character.h"
 #include "CombatCharacter.generated.h"
 
+class UWidgetComponent;
 class UGameplayAbility;
 class UUWeaponData;
 struct FOnAttributeChangeData;
@@ -15,7 +17,7 @@ class UWeaponComponent;
 class UCombatAttributeSet;
 
 UCLASS()
-class ACombatCharacter : public ACharacter, public IAbilitySystemInterface
+class ACombatCharacter : public ACharacter, public IAbilitySystemInterface, public ITargetable
 {
 	GENERATED_BODY()
 
@@ -41,7 +43,18 @@ public:
 
 	//For targeting locking
 	UFUNCTION(BlueprintCallable, Category = "Combat|Movement") void SetStrafeMode(bool bStrafe);
+	
+	// ITargetable
+	virtual bool CanBeTargeted() const override;
+	virtual FVector GetLockOnLocation() const override;
+	virtual void SetLockOnMarkerVisible(bool bVisible) override;
+	
 protected:
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat|Targeting") TObjectPtr<UWidgetComponent> LockOnMarker;
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Targeting") FName LockOnSocket = TEXT("spine_03");
+	
+	
 	virtual void BeginPlay() override;
 	
 	virtual void InitAbilitySystem();

@@ -5,11 +5,13 @@
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "AIController.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Core/Systems/Combat/Character/CombatCharacter.h"
 #include "Core/Systems/Combat/Sets/CombatAttributeSet.h"
 #include "Core/Systems/Combat/Tags/CombatGameplayTags.h"
+#include "Core/Systems/Combat/Targeting/TargetingComponent.h"
 #include "Core/Systems/Combat/Weapons/WeaponComponent.h"
 
 UMeleeAttack::UMeleeAttack()
@@ -44,6 +46,27 @@ void UMeleeAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	{
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 		return;
+	}
+	
+	AActor* Avatar = ActorInfo->AvatarActor.Get();
+	AActor* FaceTarget = nullptr;
+
+	if (UTargetingComponent* Targeting = Avatar ? Avatar->FindComponentByClass<UTargetingComponent>() : nullptr)
+	{
+		FaceTarget = Targeting->GetCurrentTarget();
+	}
+	else if (const APawn* Pawn = Cast<APawn>(Avatar))
+	{
+		if (const AAIController* AIC = Cast<AAIController>(Pawn->GetController()))
+		{
+			FaceTarget = AIC->GetFocusActor();
+		}
+	}
+
+	if (FaceTarget)
+	{
+		const FVector ToTarget = (FaceTarget->GetActorLocation() - Avatar->GetActorLocation()).GetSafeNormal2D();
+		Avatar->SetActorRotation(ToTarget.Rotation());
 	}
 
 	const float AttackSpeed = GetAbilitySystemComponentFromActorInfo()->GetNumericAttribute(UCombatAttributeSet::GetAttackSpeedAttribute());

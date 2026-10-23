@@ -7,6 +7,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Camera/CameraComponent.h"
 #include "Core/Systems/Combat/Tags/CombatGameplayTags.h"
+#include "Core/Systems/Combat/Targeting/TargetingComponent.h"
 #include "Core/Systems/UI/PlayerUI/PlayerHUDWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -36,6 +37,13 @@ APlayerCombatCharacter::APlayerCombatCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 	FollowCamera->bUsePawnControlRotation = false;
+	
+	TargetingComponent = CreateDefaultSubobject<UTargetingComponent>(TEXT("TargetingComponent"));
+}
+
+void APlayerCombatCharacter::OnLockOn()
+{
+	TargetingComponent->ToggleLockOn();
 }
 
 void APlayerCombatCharacter::NotifyControllerChanged()
@@ -89,6 +97,8 @@ void APlayerCombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		Input->BindAction(Special3Action, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnSpecial3);
 		
 		Input->BindAction(DodgeAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnDodge);
+		
+		Input->BindAction(LockOnAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnLockOn);
 	}
 }
 
@@ -108,6 +118,15 @@ void APlayerCombatCharacter::Move(const FInputActionValue& Value)
 void APlayerCombatCharacter::Look(const FInputActionValue& Value)
 {
 	const FVector2D Input = Value.Get<FVector2D>();
+
+	
+	//So the mouse can handle target switching
+	if (TargetingComponent && TargetingComponent->IsLockedOn())
+	{
+		TargetingComponent->HandleSwitchInput(Input.X);
+		return;
+	}
+
 	AddControllerYawInput(Input.X);
 	AddControllerPitchInput(Input.Y);
 }

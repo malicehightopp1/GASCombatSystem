@@ -5,6 +5,7 @@
 
 #include "AbilitySystemComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Core/Systems/Combat/Sets/CombatAttributeSet.h"
 #include "Core/Systems/Combat/Tags/CombatGameplayTags.h"
 #include "Core/Systems/Combat/Weapons/WeaponComponent.h"
@@ -26,6 +27,14 @@ ACombatCharacter::ACombatCharacter()
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	WeaponMesh->SetupAttachment(GetMesh(), WeaponSocketName);
 	WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	
+	LockOnMarker = CreateDefaultSubobject<UWidgetComponent>(TEXT("LockOnMarker"));
+	LockOnMarker->SetupAttachment(GetMesh(), TEXT("spine_03"));
+	
+	LockOnMarker->SetWidgetSpace(EWidgetSpace::Screen); 
+	LockOnMarker->SetDrawSize(FVector2D(24.f, 24.f));
+	LockOnMarker->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	LockOnMarker->SetVisibility(false);  
 }
 
 bool ACombatCharacter::IsDead() const
@@ -33,6 +42,23 @@ bool ACombatCharacter::IsDead() const
 	return AbilitySystemComponent && AbilitySystemComponent->HasMatchingGameplayTag(CombatTags::State_Dead);
 }
 
+bool ACombatCharacter::CanBeTargeted() const
+{
+	return !IsDead();
+}
+
+FVector ACombatCharacter::GetLockOnLocation() const
+{
+	return GetMesh()->DoesSocketExist(LockOnSocket) ? GetMesh()->GetSocketLocation(LockOnSocket) : GetActorLocation();
+}
+
+void ACombatCharacter::SetLockOnMarkerVisible(bool bVisible)
+{
+	if (LockOnMarker)
+	{
+		LockOnMarker->SetVisibility(bVisible);
+	}
+}
 void ACombatCharacter::BeginPlay()
 {
 	//playing these first before start

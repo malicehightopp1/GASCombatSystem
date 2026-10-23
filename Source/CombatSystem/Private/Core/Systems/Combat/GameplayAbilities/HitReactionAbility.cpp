@@ -31,10 +31,7 @@ UAnimMontage* UHitReactionAbility::PickMontage(const AActor* Victim, const AActo
 	return Picked ? Picked : FrontMontage.Get(); //do the front react if no direction is found - default
 }
 
-void UHitReactionAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,
-	const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo,
-	const FGameplayEventData* TriggerEventData)
+void UHitReactionAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,const FGameplayAbilityActorInfo* ActorInfo,const FGameplayAbilityActivationInfo ActivationInfo,const FGameplayEventData* TriggerEventData)
 {
 	// TriggerEventData is the payload sent by the attribute set
 	const AActor* Victim   = ActorInfo->AvatarActor.Get();
