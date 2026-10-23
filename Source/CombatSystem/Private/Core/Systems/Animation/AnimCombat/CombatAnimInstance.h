@@ -26,6 +26,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement") bool bIsFalling = false;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement") bool bIsSprinting = false;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement") bool bIsLockedOn = false;
+	UPROPERTY(BlueprintReadOnly, Category = "Combat")bool bIsBlocking = false;
 	
 private:
 	UPROPERTY() TObjectPtr<ACharacter> Character;

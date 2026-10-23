@@ -47,6 +47,7 @@ void UCombatAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	
 	if (const UAbilitySystemComponent* ASC = UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Character))
 	{
+		bIsBlocking = ASC->HasMatchingGameplayTag(CombatTags::State_Blocking.GetTag());
 		bIsSprinting = ASC->HasMatchingGameplayTag(CombatTags::State_Sprinting.GetTag());
 		bIsLockedOn = ASC->HasMatchingGameplayTag(CombatTags::State_LockedOn.GetTag());
 	}

@@ -7,6 +7,21 @@
 #include "AttributeSet.h"
 #include "CombatAttributeSet.generated.h"
 
+namespace BlockTuning
+{
+	constexpr float DamageAbsorb = 0.8f;
+	constexpr float StaminaPerDamage = 0.5f; 
+	constexpr float FrontDotThreshold = 0.5f; 
+}
+
+static bool IsAttackerInFront(const AActor* Victim, const AActor* Attacker)
+{
+	if (!Victim || !Attacker) return false;
+	const FVector ToAttacker = (Attacker->GetActorLocation() - Victim->GetActorLocation()).GetSafeNormal2D();
+	return FVector::DotProduct(Victim->GetActorForwardVector().GetSafeNormal2D(), ToAttacker) >= BlockTuning::FrontDotThreshold;
+}
+
+
 #define COMBAT_ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
 GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
 	GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \

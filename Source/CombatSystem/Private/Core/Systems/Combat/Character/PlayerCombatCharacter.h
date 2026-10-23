@@ -45,6 +45,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input")TObjectPtr<UInputAction> LockOnAction;
 
 	void OnLockOn();
+	
+	//============================================//
+	//                Blocking                    //
+	//============================================//
+	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> BlockAction;
+
+	void OnBlockStarted();
+	void OnBlockReleased();
 	//============================================//
 	//                Inputs                      //
 	//============================================//

@@ -72,13 +72,20 @@ void UCombatAttributeSet::HandleIncomingDamage(const FGameplayEffectModCallbackD
 
 	if (TargetASC.HasMatchingGameplayTag(CombatTags::State_Dead.GetTag())) return;
 
-	// Defense: Damage × 100 / (100 + Defense)
-	const float DefenseMult = 100.f / (100.f + GetDefense());
-	const float FinalDamage = RawDamage * DefenseMult;
-	SetHealth(FMath::Clamp(GetHealth() - FinalDamage, 0.f, GetMaxHealth()));
+	float StanceDamage = Data.EffectSpec.GetSetByCallerMagnitude(CombatTags::Data_StanceDamage.GetTag(), false, 0.f);
+	
+	bool bBlocked = false;
+	if (TargetASC.HasMatchingGameplayTag(CombatTags::State_Blocking.GetTag()) && IsAttackerInFront(Victim, Attacker))
+	{
+		bBlocked = true;
+		SetStamina(FMath::Max(GetStamina() - RawDamage * BlockTuning::StaminaPerDamage, 0.f));   
+		RawDamage   *= (1.f - BlockTuning::DamageAbsorb);                                       
+		StanceDamage = 0.f;
+	}
 
-	const float StanceDamage = Data.EffectSpec.GetSetByCallerMagnitude(CombatTags::Data_StanceDamage.GetTag(), false, 0.f) * DefenseMult;
-	SetStance(FMath::Max(GetStance() - StanceDamage, 0.f));
+	const float DefenseMult = 100.f / (100.f + GetDefense());
+	SetHealth(FMath::Clamp(GetHealth() - RawDamage * DefenseMult, 0.f, GetMaxHealth()));
+	SetStance(FMath::Max(GetStance() - StanceDamage * DefenseMult, 0.f));
 
 	if (GetHealth() <= 0.f)
 	{
@@ -86,16 +93,21 @@ void UCombatAttributeSet::HandleIncomingDamage(const FGameplayEffectModCallbackD
 		{
 			CombatChar->HandleDeath();
 		}
-		return;  
+		return;
 	}
 
-	if (!TargetASC.HasMatchingGameplayTag(CombatTags::State_HyperArmour.GetTag()))
+	const bool bGuardBroken = bBlocked && GetStamina() <= 0.f;
+	if (bBlocked && !bGuardBroken)
+	{
+		return;
+	}
+
+	if (!TargetASC.HasMatchingGameplayTag(CombatTags::State_HyperArmour.GetTag()) || bGuardBroken)
 	{
 		FGameplayEventData Payload;
-		Payload.EventTag = CombatTags::Event_HitReact.GetTag();
-		Payload.Instigator = Attacker;   // who hit us, so the ability knows the direction
-		Payload.Target = Victim;
-
+		Payload.EventTag   = CombatTags::Event_HitReact.GetTag();
+		Payload.Instigator = Attacker;
+		Payload.Target     = Victim;
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Victim, CombatTags::Event_HitReact.GetTag(), Payload);
 	}
 }

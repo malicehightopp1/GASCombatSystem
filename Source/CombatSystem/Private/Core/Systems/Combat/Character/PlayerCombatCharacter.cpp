@@ -99,6 +99,9 @@ void APlayerCombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		Input->BindAction(DodgeAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnDodge);
 		
 		Input->BindAction(LockOnAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnLockOn);
+		
+		Input->BindAction(BlockAction, ETriggerEvent::Started,   this, &APlayerCombatCharacter::OnBlockStarted);
+		Input->BindAction(BlockAction, ETriggerEvent::Completed, this, &APlayerCombatCharacter::OnBlockReleased);
 	}
 }
 
@@ -215,4 +218,19 @@ void APlayerCombatCharacter::TryBufferedAbility()
 	const FGameplayTag Tag = BufferedAbilityTag;
 	BufferedAbilityTag = FGameplayTag();
 	AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(Tag));
+}
+void APlayerCombatCharacter::OnBlockStarted()
+{
+	ActivateAbilityByTag(CombatTags::Ability_Block.GetTag()); 
+}
+
+void APlayerCombatCharacter::OnBlockReleased()
+{
+	FGameplayTagContainer BlockTags(CombatTags::Ability_Block.GetTag());
+	AbilitySystemComponent->CancelAbilities(&BlockTags);
+
+	if (BufferedAbilityTag == CombatTags::Ability_Block.GetTag())
+	{
+		BufferedAbilityTag = FGameplayTag();
+	}
 }
