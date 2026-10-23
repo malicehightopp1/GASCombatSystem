@@ -49,11 +49,27 @@ public:
 	virtual FVector GetLockOnLocation() const override;
 	virtual void SetLockOnMarkerVisible(bool bVisible) override;
 	
+	//UI 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat|UI") TObjectPtr<UWidgetComponent> HealthBarComponent;
+	
+	//Impact
+	void PlayHitFeedback(float Intensity, bool bWasHit);
 protected:
 	
+	//impact
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Impact") float HitStopBase = 0.06f;
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Impact") float HitStopMax = 0.18f;
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Impact") float HitStopTimeScale = 0.02f;
+
+	FTimerHandle HitStopTimer; 
+	void EndHitStop();
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Impact") TSubclassOf<UCameraShakeBase> HitLandedShake;
+	UPROPERTY(EditDefaultsOnly, Category = "Combat|Impact") TSubclassOf<UCameraShakeBase> HitRecievedShake;
+	
+	//Targeting
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat|Targeting") TObjectPtr<UWidgetComponent> LockOnMarker;
 	UPROPERTY(EditDefaultsOnly, Category = "Combat|Targeting") FName LockOnSocket = TEXT("spine_03");
-	
 	
 	virtual void BeginPlay() override;
 	

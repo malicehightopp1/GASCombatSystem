@@ -6,6 +6,8 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 #include "UWeaponData.h"
 #include "Core/Systems/Combat/Character/CombatCharacter.h"
 #include "Core/Systems/Combat/Tags/CombatGameplayTags.h"

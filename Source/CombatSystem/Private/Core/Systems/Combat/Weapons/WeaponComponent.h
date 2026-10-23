@@ -7,10 +7,12 @@
 #include "Components/ActorComponent.h"
 #include "WeaponComponent.generated.h"
 
+class UNiagaraSystem;
 class UUWeaponData;
 class UWeaponData;
 class UGameplayEffect;
 class UAbilitySystemComponent;
+class UNiagaraComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnWeaponChanged, UUWeaponData*, NewWeapon);
 

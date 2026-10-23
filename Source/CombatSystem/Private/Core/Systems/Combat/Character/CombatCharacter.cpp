@@ -9,6 +9,7 @@
 #include "Core/Systems/Combat/Sets/CombatAttributeSet.h"
 #include "Core/Systems/Combat/Tags/CombatGameplayTags.h"
 #include "Core/Systems/Combat/Weapons/WeaponComponent.h"
+#include "Core/Systems/UI/EnemyUI/EnemyHealthBarWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 ACombatCharacter::ACombatCharacter()
@@ -35,6 +36,15 @@ ACombatCharacter::ACombatCharacter()
 	LockOnMarker->SetDrawSize(FVector2D(24.f, 24.f));
 	LockOnMarker->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	LockOnMarker->SetVisibility(false);  
+	
+	HealthBarComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("HealthBar"));
+	HealthBarComponent->SetupAttachment(RootComponent);
+	
+	HealthBarComponent->SetRelativeLocation(FVector(0.f, 0.f, 115.f));
+	HealthBarComponent->SetWidgetSpace(EWidgetSpace::Screen); 
+	HealthBarComponent->SetDrawSize(FVector2D(120.f, 50.f));
+	
+	HealthBarComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 bool ACombatCharacter::IsDead() const
@@ -58,7 +68,35 @@ void ACombatCharacter::SetLockOnMarkerVisible(bool bVisible)
 	{
 		LockOnMarker->SetVisibility(bVisible);
 	}
+	if (UEnemyHealthBarWidget* Bar = Cast<UEnemyHealthBarWidget>(HealthBarComponent->GetUserWidgetObject()))
+	{
+		Bar->SetLockedOn(bVisible);
+	}
 }
+
+void ACombatCharacter::PlayHitFeedback(float Intensity, bool bWasHit)
+{
+	const float duration = FMath::Clamp(HitStopBase * Intensity, 0.f, HitStopMax);
+	if (duration > 0.f)
+	{
+		CustomTimeDilation = HitStopTimeScale;
+		GetWorldTimerManager().SetTimer(HitStopTimer, this, &ACombatCharacter::EndHitStop, duration, false);
+	}
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		const TSubclassOf<UCameraShakeBase> Shake = bWasHit ? HitRecievedShake : HitLandedShake;
+		if (Shake)
+		{
+			PC->ClientStartCameraShake(Shake, Intensity);
+		}
+	}
+}
+
+void ACombatCharacter::EndHitStop()
+{
+	CustomTimeDilation = 1.f;
+}
+
 void ACombatCharacter::BeginPlay()
 {
 	//playing these first before start
@@ -66,6 +104,12 @@ void ACombatCharacter::BeginPlay()
 	InitAbilitySystem();
 	
 	Super::BeginPlay();
+	
+	HealthBarComponent->InitWidget();
+	if (UEnemyHealthBarWidget* Bar = Cast<UEnemyHealthBarWidget>(HealthBarComponent->GetUserWidgetObject()))
+	{
+		Bar->InitFromASC(AbilitySystemComponent);
+	}
 }
 
 void ACombatCharacter::InitAbilitySystem()
@@ -86,7 +130,6 @@ void ACombatCharacter::InitAbilitySystem()
 		}
 	}
 
-	// Weapon weight -> MovementSpeed attribute -> CharacterMovement
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCombatAttributeSet::GetMovementSpeedAttribute())
 		.AddUObject(this, &ACombatCharacter::OnMovementSpeedChanged);
 
@@ -122,6 +165,7 @@ void ACombatCharacter::HandleDeath()
 {
 	if (IsDead()) return;
 
+	HealthBarComponent->SetVisibility(false);
 	AbilitySystemComponent->AddLooseGameplayTag(CombatTags::State_Dead);
 	AbilitySystemComponent->CancelAllAbilities();
 	WeaponComponent->EndAttackTrace();

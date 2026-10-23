@@ -6,6 +6,7 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemGlobals.h"
 #include "AIController.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Core/Systems/Combat/Character/CombatCharacter.h"
@@ -13,6 +14,7 @@
 #include "Core/Systems/Combat/Tags/CombatGameplayTags.h"
 #include "Core/Systems/Combat/Targeting/TargetingComponent.h"
 #include "Core/Systems/Combat/Weapons/WeaponComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 UMeleeAttack::UMeleeAttack()
 {
@@ -161,5 +163,42 @@ void UMeleeAttack::OnHitEvent(FGameplayEventData Payload)
 	Spec.Data->SetSetByCallerMagnitude(CombatTags::Data_Damage.GetTag(), FinalDamage);
 	Spec.Data->SetSetByCallerMagnitude(CombatTags::Data_StanceDamage.GetTag(), CurrentAttack.StanceDamage);
 
-	SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
+	const FActiveGameplayEffectHandle Applied = SourceASC->ApplyGameplayEffectSpecToTarget(*Spec.Data.Get(), TargetASC);
+
+	if (!Applied.WasSuccessfullyApplied()) return;
+
+	const float Intensity = CurrentAttack.DamageMultiplier;
+
+	if (ACombatCharacter* Attacker = Cast<ACombatCharacter>(GetAvatarActorFromActorInfo()))
+	{
+		Attacker->PlayHitFeedback(Intensity, false);
+	}
+	if (ACombatCharacter* Victim = Cast<ACombatCharacter>(TargetASC->GetAvatarActor()))
+	{
+		Victim->PlayHitFeedback(Intensity, true);
+	}
+	const ACombatCharacter* AttackerChar = Cast<ACombatCharacter>(GetAvatarActorFromActorInfo());
+	const UUWeaponData* Weapon = (AttackerChar && AttackerChar->GetWeaponComponent()) ? AttackerChar->GetWeaponComponent()->GetCurrentWeapon() : nullptr;
+	if (!Weapon) return;
+
+	FVector HitPoint = TargetASC->GetAvatarActor()->GetActorLocation(); 
+	if (Payload.TargetData.Num() > 0 && Payload.TargetData.Get(0))
+	{
+		if (const FHitResult* Hit = Payload.TargetData.Get(0)->GetHitResult())
+		{
+			if (!Hit->ImpactPoint.IsNearlyZero())
+			{
+				HitPoint = Hit->ImpactPoint;
+			}
+		}
+	}
+
+	if (Weapon->HitEffect)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Weapon->HitEffect, HitPoint);
+	}
+	if (Weapon->HitSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), Weapon->HitSound, HitPoint);
+	}
 }
