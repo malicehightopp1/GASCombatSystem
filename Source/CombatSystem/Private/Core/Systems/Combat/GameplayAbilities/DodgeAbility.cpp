@@ -29,8 +29,15 @@ void UDodgeAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle,cons
 {
 	ACharacter* Character = Cast<ACharacter>(ActorInfo->AvatarActor.Get());
 
-	const FVector InputDir = Character ? Character->GetLastMovementInputVector().GetSafeNormal2D() : FVector::ZeroVector;
+	FVector InputDir = Character ? Character->GetLastMovementInputVector().GetSafeNormal2D() : FVector::ZeroVector;
 
+	if (Character && InputDir.IsNearlyZero() && !Character->IsPlayerControlled())
+	{
+		const int32 Choice = FMath::RandRange(0, 2);
+		if (Choice == 1) InputDir =  Character->GetActorRightVector().GetSafeNormal2D();
+		if (Choice == 2) InputDir = -Character->GetActorRightVector().GetSafeNormal2D(); 
+	}
+	
 	UAnimMontage* MontageToPlay = RollMontage;
 	if (InputDir.IsNearlyZero() && BackstepMontage)
 	{

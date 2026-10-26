@@ -3,6 +3,7 @@
 
 #include "Core/Systems/UI/PlayerUI/WeaponSelectionWidget.h"
 #include "Components/Image.h"
+#include "Components/TextBlock.h"
 #include "Core/Systems/Combat/Weapons/UWeaponData.h" 
 
 void UWeaponSelectionWidget::NativeOnInitialized()
@@ -11,14 +12,15 @@ void UWeaponSelectionWidget::NativeOnInitialized()
 
 	for (int32 i = 0; i < 16; ++i)
 	{
-		UImage* Slot = Cast<UImage>(GetWidgetFromName(FName(*FString::Printf(TEXT("Slot%d"), i))));
-		if (!Slot) break;
+		UImage* WeaponSlot = Cast<UImage>(GetWidgetFromName(FName(*FString::Printf(TEXT("Slot%d"), i))));
+		if (!WeaponSlot) break;
 
-		SlotBackgrounds.Add(Slot);
+		SlotBackgrounds.Add(WeaponSlot);
 		SlotIcons.Add(Cast<UImage>(GetWidgetFromName(FName(*FString::Printf(TEXT("Icon%d"), i)))));  
 	}
 
 	SetVisibility(ESlateVisibility::Collapsed);   // hidden until opened
+	UE_LOG(LogTemp, Warning, TEXT("WHEEL found %d slots"), SlotBackgrounds.Num());   // DEBUG
 }
 
 void UWeaponSelectionWidget::Open(const TArray<TObjectPtr<UUWeaponData>>& InWeapons, int32 CurrentIndex)
@@ -44,7 +46,7 @@ void UWeaponSelectionWidget::Open(const TArray<TObjectPtr<UUWeaponData>>& InWeap
 		}
 	}
 
-	SetHighlighted(CurrentIndex);   // start on the weapon you're holding
+	SetHighlighted(CurrentIndex);  
 	SetVisibility(ESlateVisibility::HitTestInvisible);
 }
 
@@ -55,14 +57,13 @@ void UWeaponSelectionWidget::Close()
 
 void UWeaponSelectionWidget::UpdateSelection(const FVector2D& Direction)
 {
+	UE_LOG(LogTemp, Warning, TEXT("WHEEL dir=%s  size=%.2f"), *Direction.ToString(), Direction.Size());   // DEBUG
 	const int32 SlotCount = SlotBackgrounds.Num();
 	if (SlotCount == 0 || Direction.Size() < DeadZone) return;   // not pushed far enough: keep current
 
-	// Angle of the direction: 0 = up, 90 = right, 180 = down, 270 = left (clockwise like the slots)
 	float Angle = FMath::RadiansToDegrees(FMath::Atan2(Direction.X, Direction.Y));
 	if (Angle < 0.f) Angle += 360.f;
 
-	// Which slice of the pie is that? Each slot is centered on its angle.
 	const float Slice = 360.f / SlotCount;
 	const int32 Index = FMath::FloorToInt((Angle + Slice * 0.5f) / Slice) % SlotCount;
 
@@ -86,8 +87,6 @@ void UWeaponSelectionWidget::SetHighlighted(int32 Index)
 	if (WeaponNameText)
 	{
 		const UUWeaponData* Weapon = Weapons.IsValidIndex(Index) ? Weapons[Index].Get() : nullptr;
-		WeaponNameText->SetText(!Weapon ? FText::GetEmpty()
-			: Weapon->WeaponName.IsEmpty() ? FText::FromString(Weapon->GetName())
-			: Weapon->WeaponName);
+		WeaponNameText->SetText(!Weapon ? FText::GetEmpty() : Weapon->WeaponName.IsEmpty() ? FText::FromString(Weapon->GetName()) : Weapon->WeaponName);
 	}
 }

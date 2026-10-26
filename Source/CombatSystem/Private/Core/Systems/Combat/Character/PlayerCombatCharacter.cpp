@@ -8,9 +8,12 @@
 #include "Camera/CameraComponent.h"
 #include "Core/Systems/Combat/Tags/CombatGameplayTags.h"
 #include "Core/Systems/Combat/Targeting/TargetingComponent.h"
+#include "Core/Systems/Combat/Weapons/WeaponComponent.h"
 #include "Core/Systems/UI/PlayerUI/PlayerHUDWidget.h"
+#include "Core/Systems/UI/PlayerUI/WeaponSelectionWidget.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 
 APlayerCombatCharacter::APlayerCombatCharacter()
@@ -102,6 +105,9 @@ void APlayerCombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		
 		Input->BindAction(BlockAction, ETriggerEvent::Started,   this, &APlayerCombatCharacter::OnBlockStarted);
 		Input->BindAction(BlockAction, ETriggerEvent::Completed, this, &APlayerCombatCharacter::OnBlockReleased);
+		
+		Input->BindAction(WeaponWheelAction, ETriggerEvent::Started,   this, &APlayerCombatCharacter::OpenWeaponWheel);
+		Input->BindAction(WeaponWheelAction, ETriggerEvent::Completed, this, &APlayerCombatCharacter::CloseWeaponWheel);
 	}
 }
 
@@ -122,8 +128,18 @@ void APlayerCombatCharacter::Look(const FInputActionValue& Value)
 {
 	const FVector2D Input = Value.Get<FVector2D>();
 
-	
-	//So the mouse can handle target switching
+	if (bWheelOpen && WeaponWheelWidget)
+	{
+		const float Y = bInvertWheelY ? -Input.Y : Input.Y;
+		WheelInput += FVector2D(Input.X, Y) * WheelSensitivity;
+		if (WheelInput.Size() > 1.f)
+		{
+			WheelInput.Normalize();
+		}
+		WeaponWheelWidget->UpdateSelection(WheelInput);
+		return;
+	}
+
 	if (TargetingComponent && TargetingComponent->IsLockedOn())
 	{
 		TargetingComponent->HandleSwitchInput(Input.X);
@@ -136,6 +152,7 @@ void APlayerCombatCharacter::Look(const FInputActionValue& Value)
 
 void APlayerCombatCharacter::ActivateAbilityByTag(const FGameplayTag& AbilityTag)
 {
+	if (bWheelOpen) return;
 	if (AbilitySystemComponent->TryActivateAbilitiesByTag(FGameplayTagContainer(AbilityTag)))
 	{
 		BufferedAbilityTag = FGameplayTag();   // it worke nothing to remember
@@ -235,5 +252,49 @@ void APlayerCombatCharacter::OnBlockReleased()
 	if (BufferedAbilityTag == CombatTags::Ability_Block.GetTag())
 	{
 		BufferedAbilityTag = FGameplayTag();
+	}
+}
+void APlayerCombatCharacter::OpenWeaponWheel()
+{
+	if (bWheelOpen || WheelWeapons.Num() == 0 || !WeaponWheelWidgetClass) return;
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC) return;
+
+	if (!WeaponWheelWidget)
+	{
+		WeaponWheelWidget = CreateWidget<UWeaponSelectionWidget>(PC, WeaponWheelWidgetClass);
+		if (!WeaponWheelWidget) return;
+		WeaponWheelWidget->AddToViewport(10); 
+	}
+
+	const int32 CurrentIndex = WheelWeapons.Find(WeaponComponent->GetCurrentWeapon());
+	WeaponWheelWidget->Open(WheelWeapons, CurrentIndex);
+
+	WheelInput = FVector2D::ZeroVector;
+	bWheelOpen = true;
+
+	UGameplayStatics::SetGlobalTimeDilation(this, WheelTimeDilation);   // slow-mo while choosing
+}
+
+void APlayerCombatCharacter::CloseWeaponWheel()
+{
+	if (!bWheelOpen) return;
+	bWheelOpen = false;
+
+	UGameplayStatics::SetGlobalTimeDilation(this, 1.f);   // normal speed
+
+	if (!WeaponWheelWidget) return;
+
+	const int32 Index = WeaponWheelWidget->GetHighlightedIndex();
+	UE_LOG(LogTemp, Warning, TEXT("WHEEL close | Index=%d | Weapons=%d"), Index, WheelWeapons.Num());   // DEBUG
+	
+	WeaponWheelWidget->Close();
+
+	const bool bMidSwing = AbilitySystemComponent->HasMatchingGameplayTag(CombatTags::State_Attacking.GetTag());
+	if (!bMidSwing && WheelWeapons.IsValidIndex(Index) && WheelWeapons[Index]
+		&& WheelWeapons[Index] != WeaponComponent->GetCurrentWeapon())
+	{
+		WeaponComponent->EquipWeapon(WheelWeapons[Index]);
 	}
 }

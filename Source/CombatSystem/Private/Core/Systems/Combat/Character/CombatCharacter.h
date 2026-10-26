@@ -8,6 +8,7 @@
 #include "GameFramework/Character.h"
 #include "CombatCharacter.generated.h"
 
+class UWeaponSelectionWidget;
 class UWidgetComponent;
 class UGameplayAbility;
 class UUWeaponData;
@@ -54,6 +55,7 @@ public:
 	
 	//Impact
 	void PlayHitFeedback(float Intensity, bool bWasHit);
+
 protected:
 	
 	//impact

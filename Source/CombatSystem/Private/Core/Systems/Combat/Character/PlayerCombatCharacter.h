@@ -31,6 +31,27 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "UI") TSubclassOf<UPlayerHUDWidget> HUDWidgetClass;
 	UPROPERTY() TObjectPtr<UPlayerHUDWidget> HUDWidget; 
 	
+	//============================================//
+	//               Weapon Selection             //
+	//============================================//
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Input")TObjectPtr<UInputAction> WeaponWheelAction;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Wheel")TArray<TObjectPtr<UUWeaponData>> WheelWeapons;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Wheel")TSubclassOf<UWeaponSelectionWidget> WeaponWheelWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Wheel")float WheelSensitivity = 0.05f;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Wheel")float WheelTimeDilation = 0.25f;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon Wheel")bool bInvertWheelY = false;
+
+	UPROPERTY()TObjectPtr<UWeaponSelectionWidget> WeaponWheelWidget;
+
+	bool bWheelOpen = false;
+	FVector2D WheelInput = FVector2D::ZeroVector;
+
+	void OpenWeaponWheel();
+	void CloseWeaponWheel();
+	
 protected:
 	//============================================//
 	//                Camera                      //

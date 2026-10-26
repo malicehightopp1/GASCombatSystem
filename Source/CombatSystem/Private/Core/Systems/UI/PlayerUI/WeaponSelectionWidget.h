@@ -6,6 +6,10 @@
 #include "Blueprint/UserWidget.h"
 #include "WeaponSelectionWidget.generated.h"
 
+class UImage;
+class UUWeaponData;
+class UTextBlock;
+
 UCLASS()
 class UWeaponSelectionWidget : public UUserWidget
 {

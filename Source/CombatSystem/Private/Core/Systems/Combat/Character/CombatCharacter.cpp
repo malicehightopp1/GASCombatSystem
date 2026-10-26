@@ -130,8 +130,7 @@ void ACombatCharacter::InitAbilitySystem()
 		}
 	}
 
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCombatAttributeSet::GetMovementSpeedAttribute())
-		.AddUObject(this, &ACombatCharacter::OnMovementSpeedChanged);
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UCombatAttributeSet::GetMovementSpeedAttribute()) .AddUObject(this, &ACombatCharacter::OnMovementSpeedChanged);
 
 	if (StartingWeapon)
 	{
