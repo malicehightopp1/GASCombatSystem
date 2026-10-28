@@ -101,6 +101,8 @@ void APlayerCombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		
 		Input->BindAction(DodgeAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnDodge);
 		
+		Input->BindAction(ParryAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnParry);
+		
 		Input->BindAction(LockOnAction, ETriggerEvent::Started, this, &APlayerCombatCharacter::OnLockOn);
 		
 		Input->BindAction(BlockAction, ETriggerEvent::Started,   this, &APlayerCombatCharacter::OnBlockStarted);
@@ -199,6 +201,12 @@ void APlayerCombatCharacter::OnDodge()
 	UE_LOG(LogTemp, Warning, TEXT("Dodge got called Ability should of been called"))
 }
 
+void APlayerCombatCharacter::OnParry()
+{
+	ActivateAbilityByTag(CombatTags::Ability_Parry.GetTag());
+	UE_LOG(LogTemp, Warning, TEXT("parry got called Ability should of been called"))
+}
+
 void APlayerCombatCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -241,7 +249,6 @@ void APlayerCombatCharacter::OnBlockStarted()
 	const bool bActivated = AbilitySystemComponent->TryActivateAbilitiesByTag(
 	FGameplayTagContainer(CombatTags::Ability_Block.GetTag()));
 
-	UE_LOG(LogTemp, Warning, TEXT("BLOCK pressed | activated = %d"), bActivated);
 }
 
 void APlayerCombatCharacter::OnBlockReleased()
@@ -274,7 +281,7 @@ void APlayerCombatCharacter::OpenWeaponWheel()
 	WheelInput = FVector2D::ZeroVector;
 	bWheelOpen = true;
 
-	UGameplayStatics::SetGlobalTimeDilation(this, WheelTimeDilation);   // slow-mo while choosing
+	UGameplayStatics::SetGlobalTimeDilation(this, WheelTimeDilation);   // slowmo while choosing
 }
 
 void APlayerCombatCharacter::CloseWeaponWheel()
@@ -287,7 +294,6 @@ void APlayerCombatCharacter::CloseWeaponWheel()
 	if (!WeaponWheelWidget) return;
 
 	const int32 Index = WeaponWheelWidget->GetHighlightedIndex();
-	UE_LOG(LogTemp, Warning, TEXT("WHEEL close | Index=%d | Weapons=%d"), Index, WheelWeapons.Num());   // DEBUG
 	
 	WeaponWheelWidget->Close();
 

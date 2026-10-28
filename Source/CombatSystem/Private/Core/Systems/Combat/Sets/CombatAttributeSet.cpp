@@ -15,8 +15,21 @@ namespace CombatTuning
 	constexpr float BlockStaminaPerSwing = 0.5;
 	constexpr float CounterHitMultiplier = 1.5f;
 	constexpr float DefenseScale = 100.0f;
+	constexpr float StaggeredDamageBonus  = 1.5f; 
+	constexpr float BlockStaminaPerDamage = 1.0f; 
+	constexpr float BlockStanceMultiplier = 0.5f;  
 }
 
+
+static void SendCombatEvent(AActor* Target, const FGameplayTag& Tag, AActor* Instigator)
+{
+	if (!Target) return;
+	FGameplayEventData Payload;
+	Payload.EventTag = Tag;
+	Payload.Instigator = Instigator;
+	Payload.Target = Target;
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Target, Tag, Payload);
+}
 void UCombatAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
 	Super::PreAttributeChange(Attribute, NewValue);
@@ -66,48 +79,68 @@ void UCombatAttributeSet::ClampAttributes(const FGameplayAttribute& Attribute, f
 
 void UCombatAttributeSet::HandleIncomingDamage(const FGameplayEffectModCallbackData& Data, float RawDamage)
 {
-	UAbilitySystemComponent& TargetASC = Data.Target;
-	AActor* Victim   = TargetASC.GetAvatarActor();
-	AActor* Attacker = Data.EffectSpec.GetContext().GetInstigator();
 
-	if (TargetASC.HasMatchingGameplayTag(CombatTags::State_Dead.GetTag())) return;
+	float IncomingDamageForCharacter = RawDamage;
 
-	float StanceDamage = Data.EffectSpec.GetSetByCallerMagnitude(CombatTags::Data_StanceDamage.GetTag(), false, 0.f);
-	
-	bool bBlocked = false;
-	if (TargetASC.HasMatchingGameplayTag(CombatTags::State_Blocking.GetTag()) && IsAttackerInFront(Victim, Attacker))
-	{
-		bBlocked = true;
-		SetStamina(FMath::Max(GetStamina() - RawDamage * BlockTuning::StaminaPerDamage, 0.f));   
-		RawDamage   *= (1.f - BlockTuning::DamageAbsorb);                                       
-		StanceDamage = 0.f;
-	}
+    UAbilitySystemComponent* TargetASC = &Data.Target;
+    AActor* TargetActor = TargetASC->GetAvatarActor();
+    UAbilitySystemComponent* SourceASC = Data.EffectSpec.GetContext().GetOriginalInstigatorAbilitySystemComponent();
+    AActor* SourceActor = SourceASC ? SourceASC->GetAvatarActor() : nullptr;
 
-	const float DefenseMult = 100.f / (100.f + GetDefense());
-	SetHealth(FMath::Clamp(GetHealth() - RawDamage * DefenseMult, 0.f, GetMaxHealth()));
-	SetStance(FMath::Max(GetStance() - StanceDamage * DefenseMult, 0.f));
+    if (TargetASC->HasMatchingGameplayTag(CombatTags::State_Dead)) return;
 
-	if (GetHealth() <= 0.f)
-	{
-		if (ACombatCharacter* CombatChar = Cast<ACombatCharacter>(Victim))
-		{
-			CombatChar->HandleDeath();
-		}
-		return;
-	}
+    float StanceDamage = Data.EffectSpec.GetSetByCallerMagnitude(CombatTags::Data_StanceDamage, false, 0.f);
 
-	const bool bGuardBroken = bBlocked && GetStamina() <= 0.f;
-	if (bBlocked && !bGuardBroken)
-	{
-		return;
-	}
+    const bool bFromFront = IsAttackerInFront(TargetActor, SourceActor);
+    const bool bWasStaggered = TargetASC->HasMatchingGameplayTag(CombatTags::State_Staggered);
 
-	if (!TargetASC.HasMatchingGameplayTag(CombatTags::State_HyperArmour.GetTag()) || bGuardBroken)
-	{
-		FGameplayEventData Payload;
-		Payload.EventTag   = CombatTags::Event_HitReact.GetTag();
-		Payload.Instigator = Attacker;
-		Payload.Target     = Victim;
-		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(Victim, CombatTags::Event_HitReact.GetTag(), Payload);
-	}
+    if (bFromFront && TargetASC->HasMatchingGameplayTag(CombatTags::State_Parrying))
+    {
+        SendCombatEvent(SourceActor, CombatTags::Event_Stagger, TargetActor);
+        SendCombatEvent(TargetActor, CombatTags::Event_Parried, SourceActor); // for feedback later
+        return;
+    }
+
+    if (bWasStaggered) IncomingDamageForCharacter *= CombatTuning::StaggeredDamageBonus;
+
+    bool bBlocked = false, bGuardBroken = false;
+    if (bFromFront && TargetASC->HasMatchingGameplayTag(CombatTags::State_Blocking))
+    {
+        const float StaminaCost = IncomingDamageForCharacter * CombatTuning::BlockStaminaPerDamage;
+        if (GetStamina() >= StaminaCost)
+        {
+            SetStamina(GetStamina() - StaminaCost);
+            IncomingDamageForCharacter *= (1.f - CombatTuning::BlockDamageAbsorb);
+            StanceDamage *= CombatTuning::BlockStanceMultiplier;
+            bBlocked = true;
+        }
+        else
+        {
+            SetStamina(0.f);
+            bGuardBroken = true;
+        }
+    }
+
+    const float FinalDamage = FMath::Max(IncomingDamageForCharacter - GetDefense(), 1.f);
+    SetHealth(FMath::Clamp(GetHealth() - FinalDamage, 0.f, GetMaxHealth()));
+
+    if (GetHealth() <= 0.f)
+    {
+        if (ACombatCharacter* Character = Cast<ACombatCharacter>(TargetActor))
+            Character->HandleDeath();
+        return;
+    }
+
+    if (!bWasStaggered)
+        SetStance(FMath::Clamp(GetStance() - StanceDamage, 0.f, GetMaxStance()));
+
+    if (!bWasStaggered && (bGuardBroken || GetStance() <= 0.f))
+    {
+        SetStance(GetMaxStance());
+        SendCombatEvent(TargetActor, CombatTags::Event_Stagger, SourceActor);
+    }
+    else if (!bBlocked && !bWasStaggered && !TargetASC->HasMatchingGameplayTag(CombatTags::State_HyperArmour))
+    {
+        SendCombatEvent(TargetActor, CombatTags::Event_HitReact, SourceActor);
+    }
 }

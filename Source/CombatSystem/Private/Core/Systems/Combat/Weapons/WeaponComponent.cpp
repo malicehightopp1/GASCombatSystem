@@ -39,7 +39,6 @@ void UWeaponComponent::EquipWeapon(UUWeaponData* NewWeapon)
 	}
 
 	CurrentWeapon = NewWeapon;
-
 	if (ACombatCharacter* Character = Cast<ACombatCharacter>(GetOwner()))
 	{
 		if (UStaticMeshComponent* Mesh = Character->GetWeaponMesh())

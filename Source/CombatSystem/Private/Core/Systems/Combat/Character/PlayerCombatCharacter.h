@@ -102,6 +102,8 @@ protected:
 	void OnSpecial3();
 	
 	void OnDodge();
+	void OnParry();
+
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> HeavyAttackAction;
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> LightAttackAction;
@@ -110,6 +112,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> Special3Action;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> DodgeAction;
+	UPROPERTY(EditDefaultsOnly, Category = "Input") TObjectPtr<UInputAction> ParryAction;
 	
 	//============================================//
 	//                Input Buffer                //
